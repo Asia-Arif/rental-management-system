@@ -1,5 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    FiBarChart2,
+    FiHome,
+    FiPlus,
+    FiUsers,
+    FiDollarSign,
+    FiTool,
+    FiBell,
+    FiFileText,
+    FiMapPin,
+    FiSearch,
+} from "react-icons/fi";
 
 const Properties = () => {
     const navigate = useNavigate();
@@ -117,7 +129,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <FiBarChart2 />
                             <span>Dashboard</span>
                         </button>
 
@@ -125,7 +137,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/properties")}
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            🏠
+                            <FiHome />
                             <span>Properties</span>
                         </button>
 
@@ -133,7 +145,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/add-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            ➕
+                            <FiPlus />
                             <span>Add Property</span>
                         </button>
 
@@ -141,7 +153,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/tenants")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            👥
+                            <FiUsers />
                             <span>Tenants</span>
                         </button>
 
@@ -149,7 +161,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/rent-payments")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <FiDollarSign />
                             <span>Rent Payments</span>
                         </button>
 
@@ -157,7 +169,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <FiTool />
                             <span>Maintenance</span>
                         </button>
 
@@ -165,7 +177,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <FiBell />
                             <span>Notifications</span>
                         </button>
 
@@ -173,7 +185,7 @@ const Properties = () => {
                             onClick={() => navigate("/owner/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FiFileText />
                             <span>Documents</span>
                         </button>
 
@@ -205,7 +217,7 @@ const Properties = () => {
                                 onClick={() => navigate("/owner/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
-                                🔔
+                                <FiBell />
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
                             </button>
 
@@ -246,7 +258,10 @@ const Properties = () => {
                             onClick={() => navigate("/owner/add-property")}
                             className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                         >
-                            + Add Property
+                            <span className="inline-flex items-center gap-2">
+                                <FiPlus />
+                                Add Property
+                            </span>
                         </button>
 
                     </div>
@@ -289,13 +304,17 @@ const Properties = () => {
                     {/* Search + Filter */}
                     <div className="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row">
 
-                        <input
-                            type="text"
-                            placeholder="Search property or location..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
+                        <div className="relative flex-1">
+                            <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+
+                            <input
+                                type="text"
+                                placeholder="Search property or location..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full rounded-lg border border-slate-200 px-4 py-3 pl-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+                        </div>
 
                         <select
                             value={filter}
@@ -320,7 +339,7 @@ const Properties = () => {
 
                                 {/* Property Image Placeholder */}
                                 <div className="flex h-40 items-center justify-center bg-slate-100 text-6xl">
-                                    🏠
+                                    <FiHome />
                                 </div>
 
                                 {/* Property Details */}
@@ -333,8 +352,9 @@ const Properties = () => {
                                                 {property.name}
                                             </h2>
 
-                                            <p className="mt-1 text-sm text-slate-500">
-                                                📍 {property.location}
+                                            <p className="mt-1 flex items-center gap-1 text-sm text-slate-500">
+                                                <FiMapPin />
+                                                {property.location}
                                             </p>
                                         </div>
 
@@ -423,8 +443,8 @@ const Properties = () => {
                     {filteredProperties.length === 0 && (
                         <div className="mt-8 rounded-xl border border-slate-200 bg-white p-12 text-center">
 
-                            <div className="text-5xl">
-                                🔍
+                            <div className="flex justify-center text-5xl text-slate-400">
+                                <FiSearch />
                             </div>
 
                             <h2 className="mt-4 text-lg font-semibold text-slate-800">

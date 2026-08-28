@@ -1,5 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    FiBarChart2,
+    FiHome,
+    FiDollarSign,
+    FiTool,
+    FiBell,
+    FiFileText,
+    FiClock,
+    FiCheckCircle,
+} from "react-icons/fi";
 
 const Maintenance = () => {
     const navigate = useNavigate();
@@ -85,7 +95,7 @@ const Maintenance = () => {
                             onClick={() => navigate("/tenant/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <FiBarChart2 />
                             <span>Dashboard</span>
                         </button>
 
@@ -93,7 +103,7 @@ const Maintenance = () => {
                             onClick={() => navigate("/tenant/join-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <FiHome />
                             <span>Join Property</span>
                         </button>
 
@@ -101,7 +111,7 @@ const Maintenance = () => {
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏡
+                            <FiHome />
                             <span>My Property</span>
                         </button>
 
@@ -109,7 +119,7 @@ const Maintenance = () => {
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <FiDollarSign />
                             <span>Rent Payment</span>
                         </button>
 
@@ -117,7 +127,7 @@ const Maintenance = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            🔧
+                            <FiTool />
                             <span>Maintenance</span>
                         </button>
 
@@ -125,7 +135,7 @@ const Maintenance = () => {
                             onClick={() => navigate("/tenant/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <FiBell />
                             <span>Notifications</span>
                         </button>
 
@@ -133,7 +143,7 @@ const Maintenance = () => {
                             onClick={() => navigate("/tenant/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FiFileText />
                             <span>Documents</span>
                         </button>
 
@@ -165,7 +175,7 @@ const Maintenance = () => {
                                 onClick={() => navigate("/tenant/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <FiBell />
 
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
@@ -221,7 +231,7 @@ const Maintenance = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    🔧
+                                    <FiTool />
                                 </div>
 
                             </div>
@@ -244,7 +254,7 @@ const Maintenance = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-2xl">
-                                    ⏳
+                                    <FiClock />
                                 </div>
 
                             </div>
@@ -267,7 +277,7 @@ const Maintenance = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    ✅
+                                    <FiCheckCircle />
                                 </div>
 
                             </div>
@@ -402,7 +412,8 @@ const Maintenance = () => {
                                     type="submit"
                                     className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
                                 >
-                                    🔧 Submit Request
+                                    <FiTool className="mr-1 inline-block" />
+                                    Submit Request
                                 </button>
 
                             </div>
@@ -440,7 +451,7 @@ const Maintenance = () => {
                                         <div className="flex gap-4">
 
                                             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl">
-                                                🔧
+                                                <FiTool />
                                             </div>
 
                                             <div>
@@ -465,21 +476,23 @@ const Maintenance = () => {
                                         <div className="flex items-center gap-4">
 
                                             <span
-                                                className={`rounded-full px-3 py-1 text-xs font-medium ${request.priority === "High"
+                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                    request.priority === "High"
                                                         ? "bg-red-100 text-red-700"
                                                         : request.priority === "Medium"
                                                             ? "bg-yellow-100 text-yellow-700"
                                                             : "bg-green-100 text-green-700"
-                                                    }`}
+                                                }`}
                                             >
                                                 {request.priority} Priority
                                             </span>
 
                                             <span
-                                                className={`rounded-full px-3 py-1 text-xs font-medium ${request.status === "Completed"
+                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                    request.status === "Completed"
                                                         ? "bg-green-100 text-green-700"
                                                         : "bg-yellow-100 text-yellow-700"
-                                                    }`}
+                                                }`}
                                             >
                                                 {request.status}
                                             </span>

@@ -1,4 +1,15 @@
 import { useNavigate } from "react-router-dom";
+import {
+    FiGrid,
+    FiHome,
+    FiDollarSign,
+    FiTool,
+    FiBell,
+    FiFileText,
+    FiCheckCircle,
+    FiCalendar,
+    FiSmile,
+} from "react-icons/fi";
 
 const TenantDashboard = () => {
     const navigate = useNavigate();
@@ -35,7 +46,7 @@ const TenantDashboard = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            📊
+                            <FiGrid />
                             <span>Dashboard</span>
                         </button>
 
@@ -44,7 +55,7 @@ const TenantDashboard = () => {
                             onClick={() => navigate("/tenant/join-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <FiHome />
                             <span>Join Property</span>
                         </button>
 
@@ -53,7 +64,7 @@ const TenantDashboard = () => {
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏡
+                            <FiHome />
                             <span>My Property</span>
                         </button>
 
@@ -62,7 +73,7 @@ const TenantDashboard = () => {
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <FiDollarSign />
                             <span>Rent Payment</span>
                         </button>
 
@@ -71,7 +82,7 @@ const TenantDashboard = () => {
                             onClick={() => navigate("/tenant/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <FiTool />
                             <span>Maintenance</span>
                         </button>
 
@@ -80,7 +91,7 @@ const TenantDashboard = () => {
                             onClick={() => navigate("/tenant/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <FiBell />
                             <span>Notifications</span>
                         </button>
 
@@ -89,7 +100,7 @@ const TenantDashboard = () => {
                             onClick={() => navigate("/tenant/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FiFileText />
                             <span>Documents</span>
                         </button>
 
@@ -122,7 +133,7 @@ const TenantDashboard = () => {
                                 onClick={() => navigate("/tenant/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <FiBell />
 
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
@@ -152,7 +163,7 @@ const TenantDashboard = () => {
                     <div className="mb-8">
 
                         <h1 className="text-2xl font-bold text-slate-800">
-                            Welcome, Tenant 👋
+                            Welcome, Tenant <FiSmile className="inline" />
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
@@ -184,7 +195,7 @@ const TenantDashboard = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    💰
+                                    <FiDollarSign />
                                 </div>
 
                             </div>
@@ -211,7 +222,7 @@ const TenantDashboard = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    ✅
+                                    <FiCheckCircle />
                                 </div>
 
                             </div>
@@ -238,7 +249,7 @@ const TenantDashboard = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 text-2xl">
-                                    📅
+                                    <FiCalendar />
                                 </div>
 
                             </div>
@@ -265,7 +276,7 @@ const TenantDashboard = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-2xl">
-                                    🏡
+                                    <FiHome />
                                 </div>
 
                             </div>
@@ -306,7 +317,7 @@ const TenantDashboard = () => {
                                 <div className="flex items-start gap-4">
 
                                     <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                        🏠
+                                        <FiHome />
                                     </div>
 
                                     <div>
@@ -356,7 +367,7 @@ const TenantDashboard = () => {
                                     onClick={() => navigate("/tenant/rent-payment")}
                                     className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    💰
+                                    <FiDollarSign />
                                     <span>Pay Rent</span>
                                 </button>
 
@@ -364,7 +375,7 @@ const TenantDashboard = () => {
                                     onClick={() => navigate("/tenant/maintenance")}
                                     className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    🔧
+                                    <FiTool />
                                     <span>Request Maintenance</span>
                                 </button>
 
@@ -372,7 +383,7 @@ const TenantDashboard = () => {
                                     onClick={() => navigate("/tenant/documents")}
                                     className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    📄
+                                    <FiFileText />
                                     <span>View Documents</span>
                                 </button>
 
@@ -380,7 +391,7 @@ const TenantDashboard = () => {
                                     onClick={() => navigate("/tenant/notifications")}
                                     className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    🔔
+                                    <FiBell />
                                     <span>View Notifications</span>
                                 </button>
 
@@ -398,7 +409,7 @@ const TenantDashboard = () => {
                             <div className="flex items-start gap-4">
 
                                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    🔔
+                                    <FiBell />
                                 </div>
 
                                 <div>

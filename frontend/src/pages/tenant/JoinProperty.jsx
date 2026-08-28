@@ -1,5 +1,14 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    FiBarChart2,
+    FiHome,
+    FiDollarSign,
+    FiTool,
+    FiBell,
+    FiFileText,
+    FiInfo,
+} from "react-icons/fi";
 
 const JoinProperty = () => {
     const navigate = useNavigate();
@@ -54,7 +63,7 @@ const JoinProperty = () => {
                             onClick={() => navigate("/tenant/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <FiBarChart2 />
                             <span>Dashboard</span>
                         </button>
 
@@ -62,7 +71,7 @@ const JoinProperty = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            🏠
+                            <FiHome />
                             <span>Join Property</span>
                         </button>
 
@@ -71,7 +80,7 @@ const JoinProperty = () => {
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏡
+                            <FiHome />
                             <span>My Property</span>
                         </button>
 
@@ -80,7 +89,7 @@ const JoinProperty = () => {
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <FiDollarSign />
                             <span>Rent Payment</span>
                         </button>
 
@@ -89,7 +98,7 @@ const JoinProperty = () => {
                             onClick={() => navigate("/tenant/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <FiTool />
                             <span>Maintenance</span>
                         </button>
 
@@ -98,7 +107,7 @@ const JoinProperty = () => {
                             onClick={() => navigate("/tenant/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <FiBell />
                             <span>Notifications</span>
                         </button>
 
@@ -107,7 +116,7 @@ const JoinProperty = () => {
                             onClick={() => navigate("/tenant/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FiFileText />
                             <span>Documents</span>
                         </button>
 
@@ -140,7 +149,7 @@ const JoinProperty = () => {
                                 onClick={() => navigate("/tenant/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <FiBell />
 
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
@@ -188,7 +197,7 @@ const JoinProperty = () => {
                             <div className="mb-6">
 
                                 <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    🏠
+                                    <FiHome />
                                 </div>
 
                                 <h2 className="mt-5 text-xl font-semibold text-slate-800">
@@ -236,10 +245,11 @@ const JoinProperty = () => {
                             {/* Message */}
                             {message && (
                                 <div
-                                    className={`mt-5 rounded-lg p-4 text-sm ${joined
+                                    className={`mt-5 rounded-lg p-4 text-sm ${
+                                        joined
                                             ? "border border-green-200 bg-green-50 text-green-700"
                                             : "border border-red-200 bg-red-50 text-red-700"
-                                        }`}
+                                    }`}
                                 >
                                     {message}
                                 </div>
@@ -252,7 +262,7 @@ const JoinProperty = () => {
                                     <div className="flex items-start gap-4">
 
                                         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                            🏡
+                                            <FiHome />
                                         </div>
 
                                         <div className="flex-1">
@@ -403,7 +413,8 @@ const JoinProperty = () => {
                             <div className="mt-7 rounded-lg bg-blue-50 p-4">
 
                                 <p className="text-xs leading-5 text-blue-700">
-                                    💡 Make sure the property details match the information
+                                    <FiInfo className="mr-1 inline-block" />
+                                    Make sure the property details match the information
                                     provided by your owner before joining.
                                 </p>
 

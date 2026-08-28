@@ -1,26 +1,42 @@
 import { NavLink } from "react-router-dom";
+import {
+  BarChart3,
+  House,
+  Plus,
+  Users,
+  CircleDollarSign,
+  Wrench,
+  Bell,
+  FileText,
+  HousePlus,
+  Receipt,
+} from "lucide-react";
 
 const Sidebar = ({ role }) => {
   const ownerLinks = [
-    { name: "Dashboard", path: "/owner/dashboard", icon: "📊" },
-    { name: "Properties", path: "/owner/properties", icon: "🏠" },
-    { name: "Add Property", path: "/owner/add-property", icon: "➕" },
-    { name: "Tenants", path: "/owner/tenants", icon: "👥" },
-    { name: "Rent Payments", path: "/owner/payments", icon: "💰" },
-    { name: "Maintenance", path: "/owner/maintenance", icon: "🔧" },
-    { name: "Notifications", path: "/owner/notifications", icon: "🔔" },
-    { name: "Documents", path: "/owner/documents", icon: "📄" },
+    { name: "Dashboard", path: "/owner/dashboard", icon: BarChart3 },
+    { name: "Properties", path: "/owner/properties", icon: House },
+    { name: "Add Property", path: "/owner/add-property", icon: Plus },
+    { name: "Tenants", path: "/owner/tenants", icon: Users },
+    { name: "Rent Payments", path: "/owner/payments", icon: CircleDollarSign },
+    { name: "Maintenance", path: "/owner/maintenance", icon: Wrench },
+    { name: "Notifications", path: "/owner/notifications", icon: Bell },
+    { name: "Documents", path: "/owner/documents", icon: FileText },
   ];
 
   const tenantLinks = [
-    { name: "Dashboard", path: "/tenant/dashboard", icon: "📊" },
-    { name: "Join Property", path: "/tenant/join-property", icon: "🏠" },
-    { name: "My Property", path: "/tenant/my-property", icon: "🏡" },
-    { name: "Rent Payment", path: "/tenant/rent-payment", icon: "💰" },
-    { name: "Maintenance", path: "/tenant/maintenance", icon: "🔧" },
-    { name: "Notifications", path: "/tenant/notifications", icon: "🔔" },
-    { name: "Documents", path: "/tenant/documents", icon: "📄" },
-    { name: "Receipts", path: "/tenant/receipts", icon: "🧾" },
+    { name: "Dashboard", path: "/tenant/dashboard", icon: BarChart3 },
+    { name: "Join Property", path: "/tenant/join-property", icon: House },
+    { name: "My Property", path: "/tenant/my-property", icon: HousePlus },
+    {
+      name: "Rent Payment",
+      path: "/tenant/rent-payment",
+      icon: CircleDollarSign,
+    },
+    { name: "Maintenance", path: "/tenant/maintenance", icon: Wrench },
+    { name: "Notifications", path: "/tenant/notifications", icon: Bell },
+    { name: "Documents", path: "/tenant/documents", icon: FileText },
+    { name: "Receipts", path: "/tenant/receipts", icon: Receipt },
   ];
 
   const links = role === "owner" ? ownerLinks : tenantLinks;
@@ -62,8 +78,8 @@ const Sidebar = ({ role }) => {
                 }`
               }
             >
-              <span className="text-lg">
-                {link.icon}
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center">
+                <link.icon size={20} />
               </span>
 
               <span>

@@ -1,5 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    BarChart3,
+    House,
+    Home,
+    Wallet,
+    Wrench,
+    Bell,
+    FileText,
+    Receipt,
+    CheckCircle,
+    Eye,
+    Download,
+    Search,
+} from "lucide-react";
 
 const Receipts = () => {
     const navigate = useNavigate();
@@ -94,7 +108,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <BarChart3 size={20} />
                             <span>Dashboard</span>
                         </button>
 
@@ -102,7 +116,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/join-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <House size={20} />
                             <span>Join Property</span>
                         </button>
 
@@ -110,7 +124,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏡
+                            <Home size={20} />
                             <span>My Property</span>
                         </button>
 
@@ -118,7 +132,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <Wallet size={20} />
                             <span>Rent Payment</span>
                         </button>
 
@@ -126,7 +140,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <Wrench size={20} />
                             <span>Maintenance</span>
                         </button>
 
@@ -134,7 +148,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <Bell size={20} />
                             <span>Notifications</span>
                         </button>
 
@@ -142,7 +156,7 @@ const Receipts = () => {
                             onClick={() => navigate("/tenant/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FileText size={20} />
                             <span>Documents</span>
                         </button>
 
@@ -150,7 +164,7 @@ const Receipts = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            🧾
+                            <Receipt size={20} />
                             <span>Receipts</span>
                         </button>
 
@@ -182,7 +196,7 @@ const Receipts = () => {
                                 onClick={() => navigate("/tenant/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <Bell size={20} />
                             </button>
 
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
@@ -236,7 +250,7 @@ const Receipts = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    🧾
+                                    <Receipt size={24} />
                                 </div>
 
                             </div>
@@ -259,7 +273,7 @@ const Receipts = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    💰
+                                    <Wallet size={24} />
                                 </div>
 
                             </div>
@@ -282,7 +296,7 @@ const Receipts = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    ✅
+                                    <CheckCircle size={24} />
                                 </div>
 
                             </div>
@@ -372,7 +386,7 @@ const Receipts = () => {
                                                 <div className="flex items-center gap-3">
 
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 text-lg">
-                                                        🧾
+                                                        <Receipt size={20} />
                                                     </div>
 
                                                     <span className="text-sm font-semibold text-slate-700">
@@ -423,7 +437,7 @@ const Receipts = () => {
                                                         }
                                                         className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
                                                     >
-                                                        👁 View
+                                                        <Eye size={16} className="inline-block mr-1" /> View
                                                     </button>
 
                                                     <button
@@ -432,7 +446,7 @@ const Receipts = () => {
                                                         }
                                                         className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-blue-700"
                                                     >
-                                                        ⬇ Download
+                                                        <Download size={16} className="inline-block mr-1" /> Download
                                                     </button>
 
                                                 </div>
@@ -455,7 +469,7 @@ const Receipts = () => {
                             <div className="p-12 text-center">
 
                                 <div className="text-5xl">
-                                    🔍
+                                    <Search size={48} className="mx-auto" />
                                 </div>
 
                                 <h3 className="mt-4 font-semibold text-slate-800">

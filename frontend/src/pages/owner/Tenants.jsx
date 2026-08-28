@@ -1,6 +1,16 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import {
+    MdDashboard,
+    MdHome,
+    MdAdd,
+    MdPeople,
+    MdPayments,
+    MdBuild,
+    MdNotifications,
+    MdDescription,
+    MdSearch,
+} from "react-icons/md";
 
 const Tenants = () => {
     const navigate = useNavigate();
@@ -84,55 +94,63 @@ const Tenants = () => {
                             onClick={() => navigate("/owner/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            📊 <span>Dashboard</span>
+                            <MdDashboard />
+                            <span>Dashboard</span>
                         </button>
 
                         <button
                             onClick={() => navigate("/owner/properties")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🏠 <span>Properties</span>
+                            <MdHome />
+                            <span>Properties</span>
                         </button>
 
                         <button
                             onClick={() => navigate("/owner/add-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            ➕ <span>Add Property</span>
+                            <MdAdd />
+                            <span>Add Property</span>
                         </button>
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            👥 <span>Tenants</span>
+                            <MdPeople />
+                            <span>Tenants</span>
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/rent-payments")}
+                            onClick={() => navigate("/owner/payments")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            💰 <span>Rent Payments</span>
+                            <MdPayments />
+                            <span>Rent Payments</span>
                         </button>
 
                         <button
                             onClick={() => navigate("/owner/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🔧 <span>Maintenance</span>
+                            <MdBuild />
+                            <span>Maintenance</span>
                         </button>
 
                         <button
                             onClick={() => navigate("/owner/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🔔 <span>Notifications</span>
+                            <MdNotifications />
+                            <span>Notifications</span>
                         </button>
 
                         <button
                             onClick={() => navigate("/owner/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            📄 <span>Documents</span>
+                            <MdDescription />
+                            <span>Documents</span>
                         </button>
 
                     </div>
@@ -163,7 +181,7 @@ const Tenants = () => {
                                 onClick={() => navigate("/owner/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
-                                🔔
+                                <MdNotifications />
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
 
@@ -406,7 +424,7 @@ const Tenants = () => {
                             <div className="p-12 text-center">
 
                                 <div className="text-5xl">
-                                    🔍
+                                    <MdSearch />
                                 </div>
 
                                 <h3 className="mt-4 font-semibold text-slate-800">

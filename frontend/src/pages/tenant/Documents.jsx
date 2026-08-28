@@ -1,5 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    FiBarChart2,
+    FiHome,
+    FiDollarSign,
+    FiTool,
+    FiBell,
+    FiFileText,
+    FiFile,
+    FiEye,
+    FiDownload,
+    FiSearch,
+} from "react-icons/fi";
 
 const Documents = () => {
     const navigate = useNavigate();
@@ -46,11 +58,11 @@ const Documents = () => {
     );
 
     const getIcon = (type) => {
-        if (type === "Agreement") return "📜";
-        if (type === "Receipt") return "🧾";
-        if (type === "Property") return "🏠";
+        if (type === "Agreement") return <FiFile />;
+        if (type === "Receipt") return <FiFileText />;
+        if (type === "Property") return <FiHome />;
 
-        return "📄";
+        return <FiFileText />;
     };
 
     const getIconBackground = (type) => {
@@ -101,7 +113,7 @@ const Documents = () => {
                             onClick={() => navigate("/tenant/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <FiBarChart2 />
                             <span>Dashboard</span>
                         </button>
 
@@ -109,7 +121,7 @@ const Documents = () => {
                             onClick={() => navigate("/tenant/join-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <FiHome />
                             <span>Join Property</span>
                         </button>
 
@@ -117,7 +129,7 @@ const Documents = () => {
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏡
+                            <FiHome />
                             <span>My Property</span>
                         </button>
 
@@ -125,7 +137,7 @@ const Documents = () => {
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <FiDollarSign />
                             <span>Rent Payment</span>
                         </button>
 
@@ -133,7 +145,7 @@ const Documents = () => {
                             onClick={() => navigate("/tenant/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <FiTool />
                             <span>Maintenance</span>
                         </button>
 
@@ -141,7 +153,7 @@ const Documents = () => {
                             onClick={() => navigate("/tenant/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <FiBell />
                             <span>Notifications</span>
                         </button>
 
@@ -149,7 +161,7 @@ const Documents = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            📄
+                            <FiFileText />
                             <span>Documents</span>
                         </button>
 
@@ -181,7 +193,7 @@ const Documents = () => {
                                 onClick={() => navigate("/tenant/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <FiBell />
                             </button>
 
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
@@ -234,7 +246,7 @@ const Documents = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    📄
+                                    <FiFileText />
                                 </div>
 
                             </div>
@@ -260,7 +272,7 @@ const Documents = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    📜
+                                    <FiFile />
                                 </div>
 
                             </div>
@@ -286,7 +298,7 @@ const Documents = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    🧾
+                                    <FiFileText />
                                 </div>
 
                             </div>
@@ -388,14 +400,16 @@ const Documents = () => {
                                                     onClick={() => handleView(document)}
                                                     className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
                                                 >
-                                                    👁 View
+                                                    <FiEye className="mr-1 inline-block" />
+                                                    View
                                                 </button>
 
                                                 <button
                                                     onClick={() => handleDownload(document)}
                                                     className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-blue-700"
                                                 >
-                                                    ⬇ Download
+                                                    <FiDownload className="mr-1 inline-block" />
+                                                    Download
                                                 </button>
 
                                             </div>
@@ -413,7 +427,7 @@ const Documents = () => {
                             <div className="p-12 text-center">
 
                                 <div className="text-5xl">
-                                    🔍
+                                    <FiSearch className="mx-auto" />
                                 </div>
 
                                 <h3 className="mt-4 font-semibold text-slate-800">

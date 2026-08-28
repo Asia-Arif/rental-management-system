@@ -1,5 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    BarChart3,
+    House,
+    Plus,
+    Users,
+    CircleDollarSign,
+    Wrench,
+    Bell,
+    FileText,
+} from "lucide-react";
 
 const AddProperty = () => {
     const navigate = useNavigate();
@@ -61,7 +71,7 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <BarChart3 />
                             <span>Dashboard</span>
                         </button>
 
@@ -69,14 +79,14 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/properties")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <House />
                             <span>Properties</span>
                         </button>
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            ➕
+                            <Plus />
                             <span>Add Property</span>
                         </button>
 
@@ -84,7 +94,7 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/tenants")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            👥
+                            <Users />
                             <span>Tenants</span>
                         </button>
 
@@ -92,7 +102,7 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/rent-payments")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <CircleDollarSign />
                             <span>Rent Payments</span>
                         </button>
 
@@ -100,7 +110,7 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <Wrench />
                             <span>Maintenance</span>
                         </button>
 
@@ -108,7 +118,7 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <Bell />
                             <span>Notifications</span>
                         </button>
 
@@ -116,7 +126,7 @@ const AddProperty = () => {
                             onClick={() => navigate("/owner/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FileText />
                             <span>Documents</span>
                         </button>
 
@@ -149,7 +159,7 @@ const AddProperty = () => {
                                 onClick={() => navigate("/owner/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
-                                🔔
+                                <Bell />
 
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500"></span>
                             </button>

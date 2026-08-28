@@ -1,5 +1,19 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    FaChartBar,
+    FaHome,
+    FaPlus,
+    FaUsers,
+    FaMoneyBillWave,
+    FaTools,
+    FaBell,
+    FaFileAlt,
+    FaEnvelope,
+    FaClock,
+    FaSearch,
+    FaCheck,
+} from "react-icons/fa";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -99,14 +113,14 @@ const Notifications = () => {
 
     const getIcon = (type) => {
         if (type === "Payment") {
-            return "💰";
+            return <FaMoneyBillWave />;
         }
 
         if (type === "Maintenance") {
-            return "🔧";
+            return <FaTools />;
         }
 
-        return "⏰";
+        return <FaClock />;
     };
 
     const getIconBackground = (type) => {
@@ -153,7 +167,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <FaChartBar />
                             <span>Dashboard</span>
                         </button>
 
@@ -161,7 +175,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/properties")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <FaHome />
                             <span>Properties</span>
                         </button>
 
@@ -169,7 +183,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/add-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            ➕
+                            <FaPlus />
                             <span>Add Property</span>
                         </button>
 
@@ -177,7 +191,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/tenants")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            👥
+                            <FaUsers />
                             <span>Tenants</span>
                         </button>
 
@@ -185,7 +199,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/payments")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <FaMoneyBillWave />
                             <span>Rent Payments</span>
                         </button>
 
@@ -193,7 +207,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <FaTools />
                             <span>Maintenance</span>
                         </button>
 
@@ -201,7 +215,7 @@ const Notifications = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            🔔
+                            <FaBell />
                             <span>Notifications</span>
                         </button>
 
@@ -209,7 +223,7 @@ const Notifications = () => {
                             onClick={() => navigate("/owner/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FaFileAlt />
                             <span>Documents</span>
                         </button>
 
@@ -241,7 +255,7 @@ const Notifications = () => {
                                 onClick={() => navigate("/owner/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <FaBell />
 
                                 {unreadCount > 0 && (
                                     <span className="absolute right-1 top-1 flex h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -312,7 +326,7 @@ const Notifications = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    🔔
+                                    <FaBell />
                                 </div>
 
                             </div>
@@ -339,7 +353,7 @@ const Notifications = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-2xl">
-                                    📩
+                                    <FaEnvelope />
                                 </div>
 
                             </div>
@@ -366,7 +380,7 @@ const Notifications = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    💰
+                                    <FaMoneyBillWave />
                                 </div>
 
                             </div>
@@ -393,7 +407,7 @@ const Notifications = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    🔧
+                                    <FaTools />
                                 </div>
 
                             </div>
@@ -529,7 +543,7 @@ const Notifications = () => {
                                             </button>
                                         ) : (
                                             <span className="text-xs font-medium text-green-600">
-                                                ✓ Read
+                                                <FaCheck className="mr-1 inline" /> Read
                                             </span>
                                         )}
 
@@ -545,7 +559,7 @@ const Notifications = () => {
                             <div className="p-12 text-center">
 
                                 <div className="text-5xl">
-                                    🔍
+                                    <FaSearch className="mx-auto" />
                                 </div>
 
                                 <h3 className="mt-4 font-semibold text-slate-800">

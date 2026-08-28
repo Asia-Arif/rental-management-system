@@ -1,6 +1,18 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import {
+    BarChart3,
+    House,
+    Plus,
+    Users,
+    CircleDollarSign,
+    Wrench,
+    Bell,
+    FileText,
+    Clock3,
+    TriangleAlert,
+    Search,
+} from "lucide-react";
 
 const Payments = () => {
     const navigate = useNavigate();
@@ -105,7 +117,7 @@ const Payments = () => {
         <div className="min-h-screen bg-slate-50">
 
             {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
+            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white shadow-xl">
 
                 {/* Logo */}
                 <div className="flex h-20 items-center border-b border-slate-700 px-6">
@@ -129,67 +141,75 @@ const Payments = () => {
 
                     <div className="space-y-2">
 
+                        {/* Dashboard */}
                         <button
                             onClick={() => navigate("/owner/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <BarChart3 size={20} />
                             <span>Dashboard</span>
                         </button>
 
+                        {/* Properties */}
                         <button
                             onClick={() => navigate("/owner/properties")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <House size={20} />
                             <span>Properties</span>
                         </button>
 
+                        {/* Add Property */}
                         <button
                             onClick={() => navigate("/owner/add-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            ➕
+                            <Plus size={20} />
                             <span>Add Property</span>
                         </button>
 
+                        {/* Tenants */}
                         <button
                             onClick={() => navigate("/owner/tenants")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            👥
+                            <Users size={20} />
                             <span>Tenants</span>
                         </button>
 
                         {/* Active Payments */}
                         <button
+                            onClick={() => navigate("/owner/payments")}
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            💰
+                            <CircleDollarSign size={20} />
                             <span>Rent Payments</span>
                         </button>
 
+                        {/* Maintenance */}
                         <button
                             onClick={() => navigate("/owner/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <Wrench size={20} />
                             <span>Maintenance</span>
                         </button>
 
+                        {/* Notifications */}
                         <button
                             onClick={() => navigate("/owner/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <Bell size={20} />
                             <span>Notifications</span>
                         </button>
 
+                        {/* Documents */}
                         <button
                             onClick={() => navigate("/owner/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FileText size={20} />
                             <span>Documents</span>
                         </button>
 
@@ -221,7 +241,7 @@ const Payments = () => {
                                 onClick={() => navigate("/owner/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <Bell size={20} />
 
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
@@ -280,8 +300,8 @@ const Payments = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    💰
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-600">
+                                    <CircleDollarSign size={24} />
                                 </div>
 
                             </div>
@@ -307,8 +327,8 @@ const Payments = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-2xl">
-                                    ⏳
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-yellow-600">
+                                    <Clock3 size={24} />
                                 </div>
 
                             </div>
@@ -334,8 +354,8 @@ const Payments = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-2xl">
-                                    ⚠️
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-red-100 text-red-600">
+                                    <TriangleAlert size={24} />
                                 </div>
 
                             </div>
@@ -361,8 +381,8 @@ const Payments = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    📊
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                    <BarChart3 size={24} />
                                 </div>
 
                             </div>
@@ -374,13 +394,22 @@ const Payments = () => {
                     {/* Search and Filter */}
                     <div className="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row">
 
-                        <input
-                            type="text"
-                            placeholder="Search tenant or property..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
+                        <div className="relative flex-1">
+
+                            <Search
+                                size={18}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                            />
+
+                            <input
+                                type="text"
+                                placeholder="Search tenant or property..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                                className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                            />
+
+                        </div>
 
                         <select
                             value={statusFilter}
@@ -462,6 +491,7 @@ const Payments = () => {
                                 <tbody>
 
                                     {filteredPayments.map((payment) => (
+
                                         <tr
                                             key={payment.id}
                                             className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
@@ -508,12 +538,13 @@ const Payments = () => {
                                             <td className="px-6 py-5">
 
                                                 <span
-                                                    className={`rounded-full px-3 py-1 text-xs font-medium ${payment.status === "Paid"
+                                                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                        payment.status === "Paid"
                                                             ? "bg-green-100 text-green-700"
                                                             : payment.status === "Pending"
                                                                 ? "bg-yellow-100 text-yellow-700"
                                                                 : "bg-red-100 text-red-700"
-                                                        }`}
+                                                    }`}
                                                 >
                                                     {payment.status}
                                                 </span>
@@ -524,23 +555,28 @@ const Payments = () => {
                                             <td className="px-6 py-5">
 
                                                 {payment.status === "Paid" ? (
+
                                                     <button
                                                         onClick={() =>
-                                                            navigate("/owner/receipts")
+                                                            navigate("/owner/payments")
                                                         }
                                                         className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
                                                     >
                                                         View Receipt
                                                     </button>
+
                                                 ) : (
+
                                                     <span className="text-xs text-slate-400">
                                                         Not available
                                                     </span>
+
                                                 )}
 
                                             </td>
 
                                         </tr>
+
                                     ))}
 
                                 </tbody>
@@ -551,11 +587,13 @@ const Payments = () => {
 
                         {/* Empty State */}
                         {filteredPayments.length === 0 && (
+
                             <div className="p-12 text-center">
 
-                                <div className="text-5xl">
-                                    🔍
-                                </div>
+                                <Search
+                                    size={42}
+                                    className="mx-auto text-slate-400"
+                                />
 
                                 <h3 className="mt-4 font-semibold text-slate-800">
                                     No payments found
@@ -566,6 +604,7 @@ const Payments = () => {
                                 </p>
 
                             </div>
+
                         )}
 
                     </div>

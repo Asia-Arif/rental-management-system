@@ -12,7 +12,6 @@ import Maintenance from "./pages/owner/Maintenance";
 import Notifications from "./pages/owner/Notifications";
 import Documents from "./pages/owner/Documents";
 
-
 import TenantDashboard from "./pages/tenant/TenantDashboard";
 import JoinProperty from "./pages/tenant/JoinProperty";
 import MyProperty from "./pages/tenant/MyProperty";
@@ -72,12 +71,7 @@ function App() {
           element={<Documents />}
         />
 
-        {/* Default Route - ALWAYS LAST */}
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
-
+        {/* Tenant */}
         <Route
           path="/tenant/dashboard"
           element={<TenantDashboard />}
@@ -92,6 +86,7 @@ function App() {
           path="/tenant/my-property"
           element={<MyProperty />}
         />
+
         <Route
           path="/tenant/rent-payment"
           element={<TenantPayments />}
@@ -115,6 +110,12 @@ function App() {
         <Route
           path="/tenant/receipts"
           element={<TenantReceipts />}
+        />
+
+        {/* Default Route - ALWAYS LAST */}
+        <Route
+          path="*"
+          element={<Navigate to="/login" replace />}
         />
 
       </Routes>

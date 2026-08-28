@@ -1,5 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    BarChart3,
+    House,
+    Plus,
+    Users,
+    CircleDollarSign,
+    Wrench,
+    Bell,
+    FileText,
+    Search,
+    FilePenLine,
+} from "lucide-react";
 
 
 
@@ -119,7 +131,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <BarChart3 />
                             <span>Dashboard</span>
                         </button>
 
@@ -127,7 +139,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/properties")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <House />
                             <span>Properties</span>
                         </button>
 
@@ -135,7 +147,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/add-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            ➕
+                            <Plus />
                             <span>Add Property</span>
                         </button>
 
@@ -143,7 +155,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/tenants")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            👥
+                            <Users />
                             <span>Tenants</span>
                         </button>
 
@@ -151,7 +163,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/payments")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <CircleDollarSign />
                             <span>Rent Payments</span>
                         </button>
 
@@ -159,7 +171,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <Wrench />
                             <span>Maintenance</span>
                         </button>
 
@@ -167,7 +179,7 @@ const Documents = () => {
                             onClick={() => navigate("/owner/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔔
+                            <Bell />
                             <span>Notifications</span>
                         </button>
 
@@ -175,7 +187,7 @@ const Documents = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            📄
+                            <FileText />
                             <span>Documents</span>
                         </button>
 
@@ -207,7 +219,7 @@ const Documents = () => {
                                 onClick={() => navigate("/owner/notifications")}
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
-                                🔔
+                                <Bell />
 
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
@@ -267,7 +279,7 @@ const Documents = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    📄
+                                    <FileText />
                                 </div>
 
                             </div>
@@ -294,7 +306,7 @@ const Documents = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    📝
+                                    <FilePenLine />
                                 </div>
 
                             </div>
@@ -321,7 +333,7 @@ const Documents = () => {
                                 </div>
 
                                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-2xl">
-                                    🏠
+                                    <House />
                                 </div>
 
                             </div>
@@ -428,7 +440,7 @@ const Documents = () => {
                                                 <div className="flex items-center gap-3">
 
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg">
-                                                        📄
+                                                        <FileText />
                                                     </div>
 
                                                     <span className="text-sm font-medium text-slate-700">
@@ -505,7 +517,7 @@ const Documents = () => {
                             <div className="p-12 text-center">
 
                                 <div className="text-5xl">
-                                    🔍
+                                    <Search />
                                 </div>
 
                                 <h3 className="mt-4 font-semibold text-slate-800">

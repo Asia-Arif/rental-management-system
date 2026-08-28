@@ -1,6 +1,7 @@
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatCard from "../../components/StatCard";
+import { FaHome, FaUsers, FaMoneyBillWave, FaClock } from "react-icons/fa";
 
 
 const OwnerDashboard = () => {
@@ -116,28 +117,28 @@ const OwnerDashboard = () => {
                         <StatCard
                             title="Total Properties"
                             value="6"
-                            icon="🏠"
+                            icon={<FaHome />}
                             description="4 currently occupied"
                         />
 
                         <StatCard
                             title="Total Tenants"
                             value="18"
-                            icon="👥"
+                            icon={<FaUsers />}
                             description="Active tenants"
                         />
 
                         <StatCard
                             title="Rent Collected"
                             value="Rs. 250K"
-                            icon="💰"
+                            icon={<FaMoneyBillWave />}
                             description="This month"
                         />
 
                         <StatCard
                             title="Pending Rent"
                             value="Rs. 45K"
-                            icon="⏳"
+                            icon={<FaClock />}
                             description="Awaiting payment"
                         />
 
@@ -347,7 +348,7 @@ const OwnerDashboard = () => {
                                                 <div className="flex items-center gap-3">
 
                                                     <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                                                        🏠
+                                                        <FaHome />
                                                     </div>
 
                                                     <span className="text-sm font-medium text-slate-700">

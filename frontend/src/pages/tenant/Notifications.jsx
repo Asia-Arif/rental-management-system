@@ -1,5 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+    BarChart3,
+    Home,
+    House,
+    Wallet,
+    Wrench,
+    Bell,
+    FileText,
+    CheckCircle,
+    Trash2,
+    Check,
+} from "lucide-react";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -77,12 +89,12 @@ const Notifications = () => {
     };
 
     const getIcon = (type) => {
-        if (type === "Rent") return "💰";
-        if (type === "Maintenance") return "🔧";
-        if (type === "Payment") return "✅";
-        if (type === "Document") return "📄";
+        if (type === "Rent") return <Wallet size={22} />;
+        if (type === "Maintenance") return <Wrench size={22} />;
+        if (type === "Payment") return <CheckCircle size={22} />;
+        if (type === "Document") return <FileText size={22} />;
 
-        return "🔔";
+        return <Bell size={22} />;
     };
 
     const getIconBackground = (type) => {
@@ -126,7 +138,7 @@ const Notifications = () => {
                             onClick={() => navigate("/tenant/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📊
+                            <BarChart3 size={20} />
                             <span>Dashboard</span>
                         </button>
 
@@ -134,7 +146,7 @@ const Notifications = () => {
                             onClick={() => navigate("/tenant/join-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏠
+                            <Home size={20} />
                             <span>Join Property</span>
                         </button>
 
@@ -142,7 +154,7 @@ const Notifications = () => {
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🏡
+                            <House size={20} />
                             <span>My Property</span>
                         </button>
 
@@ -150,7 +162,7 @@ const Notifications = () => {
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            💰
+                            <Wallet size={20} />
                             <span>Rent Payment</span>
                         </button>
 
@@ -158,7 +170,7 @@ const Notifications = () => {
                             onClick={() => navigate("/tenant/maintenance")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            🔧
+                            <Wrench size={20} />
                             <span>Maintenance</span>
                         </button>
 
@@ -166,7 +178,7 @@ const Notifications = () => {
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
-                            🔔
+                            <Bell size={20} />
                             <span>Notifications</span>
 
                             {unreadCount > 0 && (
@@ -180,7 +192,7 @@ const Notifications = () => {
                             onClick={() => navigate("/tenant/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
-                            📄
+                            <FileText size={20} />
                             <span>Documents</span>
                         </button>
 
@@ -210,7 +222,7 @@ const Notifications = () => {
 
                             {/* Notification Icon */}
                             <div className="relative rounded-full p-2 text-slate-600">
-                                🔔
+                                <Bell size={20} />
 
                                 {unreadCount > 0 && (
                                     <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
@@ -257,7 +269,10 @@ const Notifications = () => {
                                 onClick={markAllAsRead}
                                 className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
                             >
-                                ✓ Mark All as Read
+                                <span className="inline-flex items-center gap-2">
+                                    <Check size={16} />
+                                    Mark All as Read
+                                </span>
                             </button>
                         )}
 
@@ -358,7 +373,10 @@ const Notifications = () => {
                                                             }
                                                             className="rounded-lg border border-blue-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
                                                         >
-                                                            ✓ Mark as Read
+                                                            <span className="inline-flex items-center gap-2">
+                                                                <Check size={14} />
+                                                                Mark as Read
+                                                            </span>
                                                         </button>
                                                     )}
 
@@ -368,7 +386,10 @@ const Notifications = () => {
                                                         }
                                                         className="rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50"
                                                     >
-                                                        🗑 Delete
+                                                        <span className="inline-flex items-center gap-2">
+                                                            <Trash2 size={14} />
+                                                            Delete
+                                                        </span>
                                                     </button>
 
                                                 </div>
@@ -385,8 +406,8 @@ const Notifications = () => {
                             /* Empty State */
                             <div className="p-16 text-center">
 
-                                <div className="text-6xl">
-                                    🔔
+                                <div className="flex justify-center">
+                                    <Bell size={60} />
                                 </div>
 
                                 <h3 className="mt-5 text-lg font-semibold text-slate-800">
