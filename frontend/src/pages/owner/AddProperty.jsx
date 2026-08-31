@@ -18,11 +18,14 @@ const AddProperty = () => {
         propertyName: "",
         propertyType: "",
         location: "",
+        city: "",
         bedrooms: "",
         bathrooms: "",
         monthlyRent: "",
         description: "",
     });
+
+    const [loading, setLoading] = useState(false);
 
     const handleChange = (e) => {
         setFormData({
@@ -31,14 +34,59 @@ const AddProperty = () => {
         });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        console.log("Property Data:", formData);
+        const token = localStorage.getItem("token");
 
-        alert("Property added successfully!");
+        if (!token) {
+            alert("Please login first.");
+            navigate("/login");
+            return;
+        }
 
-        navigate("/owner/properties");
+        setLoading(true);
+
+        try {
+            const response = await fetch(
+                "http://localhost:5000/api/properties",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: formData.propertyName,
+                        address: formData.location,
+                        city: formData.city,
+                        propertyType: formData.propertyType,
+                        rent: Number(formData.monthlyRent),
+                        bedrooms: Number(formData.bedrooms),
+                        bathrooms: Number(formData.bathrooms),
+                        description: formData.description,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Failed to add property"
+                );
+            }
+
+            alert("Property added successfully!");
+
+            navigate("/owner/properties");
+
+        } catch (error) {
+            console.error("Add property error:", error);
+            alert(error.message || "Unable to connect to server.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -99,7 +147,7 @@ const AddProperty = () => {
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/rent-payments")}
+                            onClick={() => navigate("/owner/payments")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <CircleDollarSign />
@@ -169,7 +217,11 @@ const AddProperty = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={() => {
+                                    localStorage.removeItem("token");
+                                    localStorage.removeItem("user");
+                                    navigate("/login");
+                                }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
                             >
                                 Logout
@@ -259,29 +311,25 @@ const AddProperty = () => {
                                                 Apartment
                                             </option>
 
-                                            <option value="Flat">
-                                                Flat
-                                            </option>
-
-                                            <option value="Portion">
-                                                Portion
+                                            <option value="Room">
+                                                Room
                                             </option>
 
                                             <option value="Shop">
                                                 Shop
                                             </option>
 
-                                            <option value="Office">
-                                                Office
+                                            <option value="Other">
+                                                Other
                                             </option>
 
                                         </select>
                                     </div>
 
                                     {/* Location */}
-                                    <div className="md:col-span-2">
+                                    <div>
                                         <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Location
+                                            Address
                                         </label>
 
                                         <input
@@ -289,7 +337,24 @@ const AddProperty = () => {
                                             name="location"
                                             value={formData.location}
                                             onChange={handleChange}
-                                            placeholder="e.g. Bahria Town, Rawalpindi"
+                                            placeholder="e.g. Street 5, Bahria Town"
+                                            required
+                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                        />
+                                    </div>
+
+                                    {/* City */}
+                                    <div>
+                                        <label className="mb-2 block text-sm font-medium text-slate-700">
+                                            City
+                                        </label>
+
+                                        <input
+                                            type="text"
+                                            name="city"
+                                            value={formData.city}
+                                            onChange={handleChange}
+                                            placeholder="e.g. Rawalpindi"
                                             required
                                             className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                         />
@@ -359,7 +424,7 @@ const AddProperty = () => {
                                             name="monthlyRent"
                                             value={formData.monthlyRent}
                                             onChange={handleChange}
-                                            min="0"
+                                            min="1"
                                             placeholder="e.g. 35000"
                                             required
                                             className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -405,9 +470,10 @@ const AddProperty = () => {
 
                                 <button
                                     type="submit"
-                                    className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700"
+                                    disabled={loading}
+                                    className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
                                 >
-                                    Add Property
+                                    {loading ? "Adding Property..." : "Add Property"}
                                 </button>
 
                             </div>

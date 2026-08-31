@@ -1,89 +1,171 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
 import Navbar from "../../components/Navbar";
 import StatCard from "../../components/StatCard";
-import { FaHome, FaUsers, FaMoneyBillWave, FaClock } from "react-icons/fa";
-
+import {
+    FaHome,
+    FaUsers,
+    FaMoneyBillWave,
+    FaClock,
+} from "react-icons/fa";
 
 const OwnerDashboard = () => {
-    const recentPayments = [
-        {
-            tenant: "Ali Khan",
-            property: "Green Villa",
-            amount: "Rs. 35,000",
-            date: "25 Aug 2026",
-            status: "Paid",
-        },
-        {
-            tenant: "Sara Ahmed",
-            property: "City Apartment",
-            amount: "Rs. 28,000",
-            date: "24 Aug 2026",
-            status: "Paid",
-        },
-        {
-            tenant: "Usman Ali",
-            property: "Model Town House",
-            amount: "Rs. 40,000",
-            date: "22 Aug 2026",
-            status: "Pending",
-        },
-        {
-            tenant: "Ayesha Khan",
-            property: "Blue Residency",
-            amount: "Rs. 32,000",
-            date: "20 Aug 2026",
-            status: "Paid",
-        },
-    ];
+    const navigate = useNavigate();
 
-    const properties = [
-        {
-            name: "Green Villa",
-            location: "Islamabad",
-            tenant: "Ali Khan",
-            rent: "Rs. 35,000",
-            status: "Occupied",
-        },
-        {
-            name: "City Apartment",
-            location: "Rawalpindi",
-            tenant: "Sara Ahmed",
-            rent: "Rs. 28,000",
-            status: "Occupied",
-        },
-        {
-            name: "Model Town House",
-            location: "Lahore",
-            tenant: "Usman Ali",
-            rent: "Rs. 40,000",
-            status: "Occupied",
-        },
-        {
-            name: "Blue Residency",
-            location: "Islamabad",
-            tenant: "Ayesha Khan",
-            rent: "Rs. 32,000",
-            status: "Occupied",
-        },
-    ];
+    const [properties, setProperties] = useState([]);
+    const [payments, setPayments] = useState([]);
+    const [maintenanceRequests, setMaintenanceRequests] = useState([]);
 
-    const maintenanceRequests = [
-        {
-            title: "Water leakage",
-            property: "Green Villa",
-            priority: "High",
-        },
-        {
-            title: "AC not working",
-            property: "City Apartment",
-            priority: "Medium",
-        },
-        {
-            title: "Door lock issue",
-            property: "Blue Residency",
-            priority: "Low",
-        },
-    ];
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    setError("Please login first.");
+                    setLoading(false);
+                    return;
+                }
+
+                const headers = {
+                    Authorization: `Bearer ${token}`,
+                };
+
+                const [
+                    propertiesResponse,
+                    paymentsResponse,
+                    maintenanceResponse,
+                ] = await Promise.all([
+                    fetch("http://localhost:5000/api/properties", {
+                        method: "GET",
+                        headers,
+                    }),
+
+                    fetch("http://localhost:5000/api/payments", {
+                        method: "GET",
+                        headers,
+                    }),
+
+                    fetch("http://localhost:5000/api/maintenance", {
+                        method: "GET",
+                        headers,
+                    }),
+                ]);
+
+                const propertiesData = await propertiesResponse.json();
+                const paymentsData = await paymentsResponse.json();
+                const maintenanceData = await maintenanceResponse.json();
+
+                if (!propertiesResponse.ok) {
+                    throw new Error(
+                        propertiesData.message ||
+                            "Failed to fetch properties"
+                    );
+                }
+
+                if (!paymentsResponse.ok) {
+                    throw new Error(
+                        paymentsData.message ||
+                            "Failed to fetch payments"
+                    );
+                }
+
+                if (!maintenanceResponse.ok) {
+                    throw new Error(
+                        maintenanceData.message ||
+                            "Failed to fetch maintenance requests"
+                    );
+                }
+
+                setProperties(propertiesData.properties || []);
+                setPayments(paymentsData.payments || []);
+                setMaintenanceRequests(maintenanceData.requests || []);
+            } catch (error) {
+                console.error("Dashboard fetch error:", error);
+                setError(error.message || "Something went wrong");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, []);
+
+    // Total Properties
+    const totalProperties = properties.length;
+
+    // Occupied Properties
+    const occupiedProperties = properties.filter(
+        (property) => property.status === "Occupied"
+    ).length;
+
+    // Total Tenants
+    const tenantIds = properties
+        .filter((property) => property.tenant)
+        .map((property) => {
+            if (typeof property.tenant === "object") {
+                return property.tenant._id;
+            }
+
+            return property.tenant;
+        });
+
+    const totalTenants = [...new Set(tenantIds)].length;
+
+    // Current Month
+    const currentDate = new Date();
+
+    const currentMonth = currentDate.getMonth();
+    const currentYear = currentDate.getFullYear();
+
+    // Paid Payments This Month
+    const paidPaymentsThisMonth = payments.filter((payment) => {
+        if (payment.status !== "Paid") {
+            return false;
+        }
+
+        const paymentDate = payment.paidDate
+            ? new Date(payment.paidDate)
+            : new Date(payment.createdAt);
+
+        return (
+            paymentDate.getMonth() === currentMonth &&
+            paymentDate.getFullYear() === currentYear
+        );
+    });
+
+    // Rent Collected
+    const rentCollected = paidPaymentsThisMonth.reduce(
+        (total, payment) => total + Number(payment.amount || 0),
+        0
+    );
+
+    // Pending Rent
+    const pendingRent = payments
+        .filter(
+            (payment) =>
+                payment.status === "Pending" ||
+                payment.status === "Overdue"
+        )
+        .reduce(
+            (total, payment) => total + Number(payment.amount || 0),
+            0
+        );
+
+    // Format currency
+    const formatCurrency = (amount) => {
+        return `Rs. ${Number(amount || 0).toLocaleString()}`;
+    };
+
+    // Recent Payments
+    const recentPayments = payments.slice(0, 4);
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -111,33 +193,48 @@ const OwnerDashboard = () => {
                         </p>
                     </div>
 
+                    {/* Error */}
+                    {error && (
+                        <div className="mb-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">
+                            {error}
+                        </div>
+                    )}
+
                     {/* Statistics */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
                         <StatCard
                             title="Total Properties"
-                            value="6"
+                            value={loading ? "..." : totalProperties}
                             icon={<FaHome />}
-                            description="4 currently occupied"
+                            description={`${occupiedProperties} currently occupied`}
                         />
 
                         <StatCard
                             title="Total Tenants"
-                            value="18"
+                            value={loading ? "..." : totalTenants}
                             icon={<FaUsers />}
                             description="Active tenants"
                         />
 
                         <StatCard
                             title="Rent Collected"
-                            value="Rs. 250K"
+                            value={
+                                loading
+                                    ? "..."
+                                    : formatCurrency(rentCollected)
+                            }
                             icon={<FaMoneyBillWave />}
                             description="This month"
                         />
 
                         <StatCard
                             title="Pending Rent"
-                            value="Rs. 45K"
+                            value={
+                                loading
+                                    ? "..."
+                                    : formatCurrency(pendingRent)
+                            }
                             icon={<FaClock />}
                             description="Awaiting payment"
                         />
@@ -161,7 +258,12 @@ const OwnerDashboard = () => {
                                     </p>
                                 </div>
 
-                                <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                                <button
+                                    onClick={() =>
+                                        navigate("/owner/payments")
+                                    }
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                >
                                     View All
                                 </button>
                             </div>
@@ -194,39 +296,99 @@ const OwnerDashboard = () => {
                                     </thead>
 
                                     <tbody>
-                                        {recentPayments.map((payment, index) => (
-                                            <tr
-                                                key={index}
-                                                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                                            >
-                                                <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                                                    {payment.tenant}
-                                                </td>
-
-                                                <td className="px-6 py-4 text-sm text-slate-500">
-                                                    {payment.property}
-                                                </td>
-
-                                                <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                                                    {payment.amount}
-                                                </td>
-
-                                                <td className="px-6 py-4 text-sm text-slate-500">
-                                                    {payment.date}
-                                                </td>
-
-                                                <td className="px-6 py-4">
-                                                    <span
-                                                        className={`rounded-full px-3 py-1 text-xs font-medium ${payment.status === "Paid"
-                                                                ? "bg-green-100 text-green-700"
-                                                                : "bg-yellow-100 text-yellow-700"
-                                                            }`}
-                                                    >
-                                                        {payment.status}
-                                                    </span>
+                                        {loading ? (
+                                            <tr>
+                                                <td
+                                                    colSpan="5"
+                                                    className="px-6 py-10 text-center text-sm text-slate-500"
+                                                >
+                                                    Loading payments...
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ) : recentPayments.length === 0 ? (
+                                            <tr>
+                                                <td
+                                                    colSpan="5"
+                                                    className="px-6 py-10 text-center text-sm text-slate-500"
+                                                >
+                                                    No payments found.
+                                                </td>
+                                            </tr>
+                                        ) : (
+                                            recentPayments.map(
+                                                (payment, index) => (
+                                                    <tr
+                                                        key={
+                                                            payment._id ||
+                                                            index
+                                                        }
+                                                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                                                    >
+                                                        <td className="px-6 py-4 text-sm font-medium text-slate-700">
+                                                            {payment.tenant
+                                                                ?.name ||
+                                                                "N/A"}
+                                                        </td>
+
+                                                        <td className="px-6 py-4 text-sm text-slate-500">
+                                                            {payment.property
+                                                                ?.name ||
+                                                                "N/A"}
+                                                        </td>
+
+                                                        <td className="px-6 py-4 text-sm font-medium text-slate-700">
+                                                            {formatCurrency(
+                                                                payment.amount
+                                                            )}
+                                                        </td>
+
+                                                        <td className="px-6 py-4 text-sm text-slate-500">
+                                                            {payment.paidDate
+                                                                ? new Date(
+                                                                      payment.paidDate
+                                                                  ).toLocaleDateString(
+                                                                      "en-GB",
+                                                                      {
+                                                                          day: "2-digit",
+                                                                          month: "short",
+                                                                          year: "numeric",
+                                                                      }
+                                                                  )
+                                                                : payment.dueDate
+                                                                ? new Date(
+                                                                      payment.dueDate
+                                                                  ).toLocaleDateString(
+                                                                      "en-GB",
+                                                                      {
+                                                                          day: "2-digit",
+                                                                          month: "short",
+                                                                          year: "numeric",
+                                                                      }
+                                                                  )
+                                                                : "N/A"}
+                                                        </td>
+
+                                                        <td className="px-6 py-4">
+                                                            <span
+                                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                                    payment.status ===
+                                                                    "Paid"
+                                                                        ? "bg-green-100 text-green-700"
+                                                                        : payment.status ===
+                                                                          "Overdue"
+                                                                        ? "bg-red-100 text-red-700"
+                                                                        : "bg-yellow-100 text-yellow-700"
+                                                                }`}
+                                                            >
+                                                                {
+                                                                    payment.status
+                                                                }
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                )
+                                            )
+                                        )}
                                     </tbody>
                                 </table>
 
@@ -247,40 +409,66 @@ const OwnerDashboard = () => {
                                     </p>
                                 </div>
 
-                                <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                                <button
+                                    onClick={() =>
+                                        navigate("/owner/maintenance")
+                                    }
+                                    className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                                >
                                     View All
                                 </button>
                             </div>
 
                             <div className="divide-y divide-slate-100">
 
-                                {maintenanceRequests.map((request, index) => (
-                                    <div
-                                        key={index}
-                                        className="flex items-center justify-between px-6 py-5"
-                                    >
-                                        <div>
-                                            <h3 className="text-sm font-medium text-slate-700">
-                                                {request.title}
-                                            </h3>
-
-                                            <p className="mt-1 text-xs text-slate-500">
-                                                {request.property}
-                                            </p>
-                                        </div>
-
-                                        <span
-                                            className={`rounded-full px-3 py-1 text-xs font-medium ${request.priority === "High"
-                                                    ? "bg-red-100 text-red-700"
-                                                    : request.priority === "Medium"
-                                                        ? "bg-yellow-100 text-yellow-700"
-                                                        : "bg-green-100 text-green-700"
-                                                }`}
-                                        >
-                                            {request.priority}
-                                        </span>
+                                {loading ? (
+                                    <div className="px-6 py-10 text-center text-sm text-slate-500">
+                                        Loading requests...
                                     </div>
-                                ))}
+                                ) : maintenanceRequests.length === 0 ? (
+                                    <div className="px-6 py-10 text-center text-sm text-slate-500">
+                                        No maintenance requests found.
+                                    </div>
+                                ) : (
+                                    maintenanceRequests
+                                        .slice(0, 3)
+                                        .map((request, index) => (
+                                            <div
+                                                key={
+                                                    request._id ||
+                                                    index
+                                                }
+                                                className="flex items-center justify-between px-6 py-5"
+                                            >
+                                                <div>
+                                                    <h3 className="text-sm font-medium text-slate-700">
+                                                        {request.issue ||
+                                                            "Maintenance Issue"}
+                                                    </h3>
+
+                                                    <p className="mt-1 text-xs text-slate-500">
+                                                        {request.property
+                                                            ?.name ||
+                                                            "N/A"}
+                                                    </p>
+                                                </div>
+
+                                                <span
+                                                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                        request.status ===
+                                                        "Pending"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : request.status ===
+                                                              "In Progress"
+                                                            ? "bg-yellow-100 text-yellow-700"
+                                                            : "bg-green-100 text-green-700"
+                                                    }`}
+                                                >
+                                                    {request.status}
+                                                </span>
+                                            </div>
+                                        ))
+                                )}
 
                             </div>
                         </div>
@@ -301,7 +489,12 @@ const OwnerDashboard = () => {
                                 </p>
                             </div>
 
-                            <button className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                            <button
+                                onClick={() =>
+                                    navigate("/owner/properties")
+                                }
+                                className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                            >
                                 View All
                             </button>
                         </div>
@@ -338,46 +531,87 @@ const OwnerDashboard = () => {
 
                                 <tbody>
 
-                                    {properties.map((property, index) => (
-                                        <tr
-                                            key={index}
-                                            className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                                        >
-
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center gap-3">
-
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
-                                                        <FaHome />
-                                                    </div>
-
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        {property.name}
-                                                    </span>
-
-                                                </div>
+                                    {loading ? (
+                                        <tr>
+                                            <td
+                                                colSpan="5"
+                                                className="px-6 py-10 text-center text-sm text-slate-500"
+                                            >
+                                                Loading properties...
                                             </td>
-
-                                            <td className="px-6 py-4 text-sm text-slate-500">
-                                                {property.location}
-                                            </td>
-
-                                            <td className="px-6 py-4 text-sm text-slate-500">
-                                                {property.tenant}
-                                            </td>
-
-                                            <td className="px-6 py-4 text-sm font-medium text-slate-700">
-                                                {property.rent}
-                                            </td>
-
-                                            <td className="px-6 py-4">
-                                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                                                    {property.status}
-                                                </span>
-                                            </td>
-
                                         </tr>
-                                    ))}
+                                    ) : properties.length === 0 ? (
+                                        <tr>
+                                            <td
+                                                colSpan="5"
+                                                className="px-6 py-10 text-center text-sm text-slate-500"
+                                            >
+                                                No properties found.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        properties
+                                            .slice(0, 4)
+                                            .map((property, index) => (
+                                                <tr
+                                                    key={
+                                                        property._id ||
+                                                        index
+                                                    }
+                                                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                                                >
+
+                                                    <td className="px-6 py-4">
+                                                        <div className="flex items-center gap-3">
+
+                                                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                                                                <FaHome />
+                                                            </div>
+
+                                                            <span className="text-sm font-medium text-slate-700">
+                                                                {
+                                                                    property.name
+                                                                }
+                                                            </span>
+
+                                                        </div>
+                                                    </td>
+
+                                                    <td className="px-6 py-4 text-sm text-slate-500">
+                                                        {property.city ||
+                                                            "N/A"}
+                                                    </td>
+
+                                                    <td className="px-6 py-4 text-sm text-slate-500">
+                                                        {property.tenant
+                                                            ?.name ||
+                                                            "No Tenant"}
+                                                    </td>
+
+                                                    <td className="px-6 py-4 text-sm font-medium text-slate-700">
+                                                        {formatCurrency(
+                                                            property.rent
+                                                        )}
+                                                    </td>
+
+                                                    <td className="px-6 py-4">
+                                                        <span
+                                                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                                property.status ===
+                                                                "Occupied"
+                                                                    ? "bg-green-100 text-green-700"
+                                                                    : "bg-yellow-100 text-yellow-700"
+                                                            }`}
+                                                        >
+                                                            {
+                                                                property.status
+                                                            }
+                                                        </span>
+                                                    </td>
+
+                                                </tr>
+                                            ))
+                                    )}
 
                                 </tbody>
 

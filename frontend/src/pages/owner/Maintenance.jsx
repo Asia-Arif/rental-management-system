@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     BarChart3,
@@ -14,68 +14,145 @@ import {
     Search,
 } from "lucide-react";
 
-
 const Maintenance = () => {
     const navigate = useNavigate();
 
+    const [requests, setRequests] = useState([]);
     const [search, setSearch] = useState("");
     const [statusFilter, setStatusFilter] = useState("All");
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+    const [updatingId, setUpdatingId] = useState(null);
 
-    const requests = [
-        {
-            id: 1,
-            tenant: "Ali Khan",
-            property: "Green Villa",
-            issue: "Water leakage in kitchen",
-            date: "05 Aug 2026",
-            status: "Pending",
-        },
-        {
-            id: 2,
-            tenant: "Sara Ahmed",
-            property: "City Apartment",
-            issue: "Air conditioner not working",
-            date: "04 Aug 2026",
-            status: "In Progress",
-        },
-        {
-            id: 3,
-            tenant: "Usman Ali",
-            property: "Model Town House",
-            issue: "Broken bathroom tap",
-            date: "02 Aug 2026",
-            status: "Completed",
-        },
-        {
-            id: 4,
-            tenant: "Ayesha Khan",
-            property: "Blue Residency",
-            issue: "Electrical issue in bedroom",
-            date: "01 Aug 2026",
-            status: "Pending",
-        },
-        {
-            id: 5,
-            tenant: "Hamza Malik",
-            property: "Sunrise Apartment",
-            issue: "Door lock replacement",
-            date: "30 Jul 2026",
-            status: "Completed",
-        },
-    ];
+    // Get maintenance requests from backend
+    useEffect(() => {
+        const fetchMaintenanceRequests = async () => {
+            try {
+                setLoading(true);
+                setError("");
 
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    navigate("/login");
+                    return;
+                }
+
+                const response = await fetch(
+                    "http://localhost:5000/api/maintenance",
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                        "Failed to fetch maintenance requests"
+                    );
+                }
+
+                setRequests(data.requests || []);
+            } catch (error) {
+                console.error("Fetch maintenance error:", error);
+                setError(
+                    error.message || "Something went wrong"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMaintenanceRequests();
+    }, [navigate]);
+
+    // Update Maintenance Status
+    const updateStatus = async (id, status) => {
+        try {
+            setUpdatingId(id);
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            const response = await fetch(
+                `http://localhost:5000/api/maintenance/${id}/status`,
+                {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        status,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Failed to update status"
+                );
+            }
+
+            setRequests((previousRequests) =>
+                previousRequests.map((request) =>
+                    request._id === id
+                        ? data.request
+                        : request
+                )
+            );
+        } catch (error) {
+            console.error(
+                "Update maintenance status error:",
+                error
+            );
+
+            alert(
+                error.message ||
+                "Failed to update status"
+            );
+        } finally {
+            setUpdatingId(null);
+        }
+    };
+
+    // Search + Filter
     const filteredRequests = requests.filter((request) => {
+        const tenantName =
+            request.tenant?.name?.toLowerCase() || "";
+
+        const propertyName =
+            request.property?.name?.toLowerCase() || "";
+
+        const issue =
+            request.issue?.toLowerCase() || "";
+
+        const searchValue = search.toLowerCase();
+
         const matchesSearch =
-            request.tenant.toLowerCase().includes(search.toLowerCase()) ||
-            request.property.toLowerCase().includes(search.toLowerCase()) ||
-            request.issue.toLowerCase().includes(search.toLowerCase());
+            tenantName.includes(searchValue) ||
+            propertyName.includes(searchValue) ||
+            issue.includes(searchValue);
 
         const matchesStatus =
-            statusFilter === "All" || request.status === statusFilter;
+            statusFilter === "All" ||
+            request.status === statusFilter;
 
         return matchesSearch && matchesStatus;
     });
 
+    // Statistics
     const totalRequests = requests.length;
 
     const pendingRequests = requests.filter(
@@ -118,40 +195,55 @@ const Maintenance = () => {
 
                     <div className="space-y-2">
 
+                        {/* Dashboard */}
                         <button
-                            onClick={() => navigate("/owner/dashboard")}
+                            onClick={() =>
+                                navigate("/owner/dashboard")
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <BarChart3 />
                             <span>Dashboard</span>
                         </button>
 
+                        {/* Properties */}
                         <button
-                            onClick={() => navigate("/owner/properties")}
+                            onClick={() =>
+                                navigate("/owner/properties")
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <House />
                             <span>Properties</span>
                         </button>
 
+                        {/* Add Property */}
                         <button
-                            onClick={() => navigate("/owner/add-property")}
+                            onClick={() =>
+                                navigate("/owner/add-property")
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <Plus />
                             <span>Add Property</span>
                         </button>
 
+                        {/* Tenants */}
                         <button
-                            onClick={() => navigate("/owner/tenants")}
+                            onClick={() =>
+                                navigate("/owner/tenants")
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <Users />
                             <span>Tenants</span>
                         </button>
 
+                        {/* Rent Payments */}
                         <button
-                            onClick={() => navigate("/owner/payments")}
+                            onClick={() =>
+                                navigate("/owner/payments")
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <CircleDollarSign />
@@ -166,16 +258,24 @@ const Maintenance = () => {
                             <span>Maintenance</span>
                         </button>
 
+                        {/* Notifications */}
                         <button
-                            onClick={() => navigate("/owner/notifications")}
+                            onClick={() =>
+                                navigate(
+                                    "/owner/notifications"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <Bell />
                             <span>Notifications</span>
                         </button>
 
+                        {/* Documents */}
                         <button
-                            onClick={() => navigate("/owner/documents")}
+                            onClick={() =>
+                                navigate("/owner/documents")
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FileText />
@@ -207,7 +307,11 @@ const Maintenance = () => {
                         <div className="flex items-center gap-4">
 
                             <button
-                                onClick={() => navigate("/owner/notifications")}
+                                onClick={() =>
+                                    navigate(
+                                        "/owner/notifications"
+                                    )
+                                }
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
                                 <Bell />
@@ -220,7 +324,9 @@ const Maintenance = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={() =>
+                                    navigate("/login")
+                                }
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -247,304 +353,456 @@ const Maintenance = () => {
 
                     </div>
 
-                    {/* Statistics */}
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
-
-                        {/* Total */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Total Requests
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-slate-800">
-                                        {totalRequests}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        All maintenance requests
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    <Wrench />
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {/* Pending */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Pending
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-yellow-600">
-                                        {pendingRequests}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Need attention
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-2xl">
-                                    <Clock3 />
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {/* In Progress */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        In Progress
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-blue-600">
-                                        {inProgressRequests}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Currently being handled
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    <Wrench />
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        {/* Completed */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Completed
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-green-600">
-                                        {completedRequests}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Successfully resolved
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    <CircleCheck />
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    {/* Search + Filter */}
-                    <div className="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row">
-
-                        <input
-                            type="text"
-                            placeholder="Search tenant, property or issue..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
-
-                        <select
-                            value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value)}
-                            className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500"
-                        >
-                            <option value="All">
-                                All Requests
-                            </option>
-
-                            <option value="Pending">
-                                Pending
-                            </option>
-
-                            <option value="In Progress">
-                                In Progress
-                            </option>
-
-                            <option value="Completed">
-                                Completed
-                            </option>
-                        </select>
-
-                    </div>
-
-                    {/* Maintenance Table */}
-                    <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
-                        <div className="border-b border-slate-200 px-6 py-5">
-
-                            <h2 className="font-semibold text-slate-800">
-                                Maintenance History
-                            </h2>
-
-                            <p className="mt-1 text-xs text-slate-500">
-                                View maintenance requests submitted by your tenants.
+                    {/* Loading */}
+                    {loading && (
+                        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+                            <p className="text-sm text-slate-500">
+                                Loading maintenance requests...
                             </p>
-
                         </div>
+                    )}
 
-                        <div className="overflow-x-auto">
-
-                            <table className="w-full min-w-[950px] text-left">
-
-                                <thead>
-                                    <tr className="border-b border-slate-200 bg-slate-50">
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Tenant
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Property
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Issue
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Request Date
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Status
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Action
-                                        </th>
-
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-
-                                    {filteredRequests.map((request) => (
-                                        <tr
-                                            key={request.id}
-                                            className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                                        >
-
-                                            {/* Tenant */}
-                                            <td className="px-6 py-5">
-
-                                                <div className="flex items-center gap-3">
-
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                                        {request.tenant.charAt(0)}
-                                                    </div>
-
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        {request.tenant}
-                                                    </span>
-
-                                                </div>
-
-                                            </td>
-
-                                            {/* Property */}
-                                            <td className="px-6 py-5 text-sm text-slate-600">
-                                                {request.property}
-                                            </td>
-
-                                            {/* Issue */}
-                                            <td className="max-w-xs px-6 py-5 text-sm text-slate-600">
-                                                {request.issue}
-                                            </td>
-
-                                            {/* Date */}
-                                            <td className="px-6 py-5 text-sm text-slate-600">
-                                                {request.date}
-                                            </td>
-
-                                            {/* Status */}
-                                            <td className="px-6 py-5">
-
-                                                <span
-                                                    className={`rounded-full px-3 py-1 text-xs font-medium ${request.status === "Pending"
-                                                            ? "bg-yellow-100 text-yellow-700"
-                                                            : request.status === "In Progress"
-                                                                ? "bg-blue-100 text-blue-700"
-                                                                : "bg-green-100 text-green-700"
-                                                        }`}
-                                                >
-                                                    {request.status}
-                                                </span>
-
-                                            </td>
-
-                                            {/* Action */}
-                                            <td className="px-6 py-5">
-
-                                                <button
-                                                    onClick={() =>
-                                                        alert(
-                                                            `Maintenance request from ${request.tenant}\n\nIssue: ${request.issue}`
-                                                        )
-                                                    }
-                                                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
-                                                >
-                                                    View Details
-                                                </button>
-
-                                            </td>
-
-                                        </tr>
-                                    ))}
-
-                                </tbody>
-
-                            </table>
-
+                    {/* Error */}
+                    {!loading && error && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-600">
+                            {error}
                         </div>
+                    )}
 
-                        {/* Empty State */}
-                        {filteredRequests.length === 0 && (
-                            <div className="p-12 text-center">
+                    {!loading && !error && (
+                        <>
 
-                                <div className="text-5xl">
-                                    <Search />
+                            {/* Statistics */}
+                            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+
+                                {/* Total */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+                                    <div className="flex items-center justify-between">
+
+                                        <div>
+                                            <p className="text-sm text-slate-500">
+                                                Total Requests
+                                            </p>
+
+                                            <h2 className="mt-2 text-3xl font-bold text-slate-800">
+                                                {totalRequests}
+                                            </h2>
+
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                All maintenance requests
+                                            </p>
+                                        </div>
+
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
+                                            <Wrench />
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
-                                <h3 className="mt-4 font-semibold text-slate-800">
-                                    No requests found
-                                </h3>
+                                {/* Pending */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Try changing your search or status filter.
-                                </p>
+                                    <div className="flex items-center justify-between">
+
+                                        <div>
+                                            <p className="text-sm text-slate-500">
+                                                Pending
+                                            </p>
+
+                                            <h2 className="mt-2 text-3xl font-bold text-yellow-600">
+                                                {pendingRequests}
+                                            </h2>
+
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                Need attention
+                                            </p>
+                                        </div>
+
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-100 text-2xl">
+                                            <Clock3 />
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {/* In Progress */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+                                    <div className="flex items-center justify-between">
+
+                                        <div>
+                                            <p className="text-sm text-slate-500">
+                                                In Progress
+                                            </p>
+
+                                            <h2 className="mt-2 text-3xl font-bold text-blue-600">
+                                                {inProgressRequests}
+                                            </h2>
+
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                Currently being handled
+                                            </p>
+                                        </div>
+
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
+                                            <Wrench />
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                                {/* Completed */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+                                    <div className="flex items-center justify-between">
+
+                                        <div>
+                                            <p className="text-sm text-slate-500">
+                                                Completed
+                                            </p>
+
+                                            <h2 className="mt-2 text-3xl font-bold text-green-600">
+                                                {completedRequests}
+                                            </h2>
+
+                                            <p className="mt-1 text-xs text-slate-500">
+                                                Successfully resolved
+                                            </p>
+                                        </div>
+
+                                        <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
+                                            <CircleCheck />
+                                        </div>
+
+                                    </div>
+
+                                </div>
 
                             </div>
-                        )}
 
-                    </div>
+                            {/* Search + Filter */}
+                            <div className="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row">
+
+                                <div className="relative flex-1">
+
+                                    <Search
+                                        size={18}
+                                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+                                    />
+
+                                    <input
+                                        type="text"
+                                        placeholder="Search tenant, property or issue..."
+                                        value={search}
+                                        onChange={(e) =>
+                                            setSearch(
+                                                e.target.value
+                                            )
+                                        }
+                                        className="w-full rounded-lg border border-slate-200 py-3 pl-10 pr-4 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    />
+
+                                </div>
+
+                                <select
+                                    value={statusFilter}
+                                    onChange={(e) =>
+                                        setStatusFilter(
+                                            e.target.value
+                                        )
+                                    }
+                                    className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500"
+                                >
+                                    <option value="All">
+                                        All Requests
+                                    </option>
+
+                                    <option value="Pending">
+                                        Pending
+                                    </option>
+
+                                    <option value="In Progress">
+                                        In Progress
+                                    </option>
+
+                                    <option value="Completed">
+                                        Completed
+                                    </option>
+                                </select>
+
+                            </div>
+
+                            {/* Maintenance Table */}
+                            <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+
+                                <div className="border-b border-slate-200 px-6 py-5">
+
+                                    <h2 className="font-semibold text-slate-800">
+                                        Maintenance History
+                                    </h2>
+
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        View maintenance requests submitted by your tenants.
+                                    </p>
+
+                                </div>
+
+                                <div className="overflow-x-auto">
+
+                                    <table className="w-full min-w-[950px] text-left">
+
+                                        <thead>
+                                            <tr className="border-b border-slate-200 bg-slate-50">
+
+                                                <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
+                                                    Tenant
+                                                </th>
+
+                                                <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
+                                                    Property
+                                                </th>
+
+                                                <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
+                                                    Issue
+                                                </th>
+
+                                                <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
+                                                    Request Date
+                                                </th>
+
+                                                <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
+                                                    Status
+                                                </th>
+
+                                                <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
+                                                    Action
+                                                </th>
+
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+
+                                            {filteredRequests.map(
+                                                (request) => (
+                                                    <tr
+                                                        key={
+                                                            request._id
+                                                        }
+                                                        className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                                                    >
+
+                                                        {/* Tenant */}
+                                                        <td className="px-6 py-5">
+
+                                                            <div className="flex items-center gap-3">
+
+                                                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
+                                                                    {request
+                                                                        .tenant
+                                                                        ?.name
+                                                                        ?.charAt(
+                                                                            0
+                                                                        )
+                                                                        ?.toUpperCase() ||
+                                                                        "T"}
+                                                                </div>
+
+                                                                <div>
+                                                                    <span className="text-sm font-medium text-slate-700">
+                                                                        {request
+                                                                            .tenant
+                                                                            ?.name ||
+                                                                            "Unknown Tenant"}
+                                                                    </span>
+
+                                                                    {request
+                                                                        .tenant
+                                                                        ?.email && (
+                                                                            <p className="mt-1 text-xs text-slate-400">
+                                                                                {
+                                                                                    request
+                                                                                        .tenant
+                                                                                        .email
+                                                                                }
+                                                                            </p>
+                                                                        )}
+                                                                </div>
+
+                                                            </div>
+
+                                                        </td>
+
+                                                        {/* Property */}
+                                                        <td className="px-6 py-5">
+
+                                                            <div>
+
+                                                                <p className="text-sm font-medium text-slate-700">
+                                                                    {request
+                                                                        .property
+                                                                        ?.name ||
+                                                                        "Unknown Property"}
+                                                                </p>
+
+                                                                <p className="mt-1 text-xs text-slate-400">
+                                                                    {request
+                                                                        .property
+                                                                        ?.city ||
+                                                                        ""}
+                                                                </p>
+
+                                                            </div>
+
+                                                        </td>
+
+                                                        {/* Issue */}
+                                                        <td className="max-w-xs px-6 py-5 text-sm text-slate-600">
+                                                            {request.issue ||
+                                                                "-"}
+                                                        </td>
+
+                                                        {/* Date */}
+                                                        <td className="px-6 py-5 text-sm text-slate-600">
+
+                                                            {request.createdAt
+                                                                ? new Date(
+                                                                    request.createdAt
+                                                                ).toLocaleDateString(
+                                                                    "en-GB",
+                                                                    {
+                                                                        day: "2-digit",
+                                                                        month: "short",
+                                                                        year: "numeric",
+                                                                    }
+                                                                )
+                                                                : "-"}
+
+                                                        </td>
+
+                                                        {/* Status */}
+                                                        <td className="px-6 py-5">
+
+                                                            <span
+                                                                className={`rounded-full px-3 py-1 text-xs font-medium ${request.status ===
+                                                                        "Pending"
+                                                                        ? "bg-yellow-100 text-yellow-700"
+                                                                        : request.status ===
+                                                                            "In Progress"
+                                                                            ? "bg-blue-100 text-blue-700"
+                                                                            : "bg-green-100 text-green-700"
+                                                                    }`}
+                                                            >
+                                                                {
+                                                                    request.status
+                                                                }
+                                                            </span>
+
+                                                        </td>
+
+                                                        {/* Action */}
+                                                        <td className="px-6 py-5">
+
+                                                            <div className="flex items-center gap-2">
+
+                                                                {request.status ===
+                                                                    "Pending" && (
+                                                                        <button
+                                                                            disabled={
+                                                                                updatingId ===
+                                                                                request._id
+                                                                            }
+                                                                            onClick={() =>
+                                                                                updateStatus(
+                                                                                    request._id,
+                                                                                    "In Progress"
+                                                                                )
+                                                                            }
+                                                                            className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                        >
+                                                                            {updatingId ===
+                                                                                request._id
+                                                                                ? "Updating..."
+                                                                                : "Start"}
+                                                                        </button>
+                                                                    )}
+
+                                                                {request.status ===
+                                                                    "In Progress" && (
+                                                                        <button
+                                                                            disabled={
+                                                                                updatingId ===
+                                                                                request._id
+                                                                            }
+                                                                            onClick={() =>
+                                                                                updateStatus(
+                                                                                    request._id,
+                                                                                    "Completed"
+                                                                                )
+                                                                            }
+                                                                            className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-green-600 transition hover:bg-green-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                        >
+                                                                            {updatingId ===
+                                                                                request._id
+                                                                                ? "Updating..."
+                                                                                : "Complete"}
+                                                                        </button>
+                                                                    )}
+
+                                                                {request.status ===
+                                                                    "Completed" && (
+                                                                        <span className="text-xs text-green-600">
+                                                                            Completed
+                                                                        </span>
+                                                                    )}
+
+                                                            </div>
+
+                                                        </td>
+
+                                                    </tr>
+                                                )
+                                            )}
+
+                                        </tbody>
+
+                                    </table>
+
+                                </div>
+
+                                {/* Empty State */}
+                                {filteredRequests.length ===
+                                    0 && (
+                                        <div className="p-12 text-center">
+
+                                            <Search
+                                                size={42}
+                                                className="mx-auto text-slate-400"
+                                            />
+
+                                            <h3 className="mt-4 font-semibold text-slate-800">
+                                                No requests found
+                                            </h3>
+
+                                            <p className="mt-1 text-sm text-slate-500">
+                                                {requests.length ===
+                                                    0
+                                                    ? "No maintenance requests are available yet."
+                                                    : "Try changing your search or status filter."}
+                                            </p>
+
+                                        </div>
+                                    )}
+
+                            </div>
+
+                        </>
+                    )}
 
                 </main>
             </div>

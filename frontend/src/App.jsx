@@ -11,6 +11,8 @@ import Payments from "./pages/owner/Payments";
 import Maintenance from "./pages/owner/Maintenance";
 import Notifications from "./pages/owner/Notifications";
 import Documents from "./pages/owner/Documents";
+import PropertyDetails from "./pages/owner/PropertyDetails";
+import EditProperty from "./pages/owner/EditProperty";
 
 import TenantDashboard from "./pages/tenant/TenantDashboard";
 import JoinProperty from "./pages/tenant/JoinProperty";
@@ -70,6 +72,16 @@ function App() {
           path="/owner/documents"
           element={<Documents />}
         />
+
+        <Route
+    path="/owner/properties/:id"
+    element={<PropertyDetails />}
+/>
+
+<Route
+    path="/owner/properties/:id/edit"
+    element={<EditProperty />}
+/>
 
         {/* Tenant */}
         <Route

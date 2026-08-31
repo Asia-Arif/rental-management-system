@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     BarChart3,
@@ -13,67 +13,68 @@ import {
     FilePenLine,
 } from "lucide-react";
 
-
-
 const Documents = () => {
     const navigate = useNavigate();
 
     const [search, setSearch] = useState("");
     const [typeFilter, setTypeFilter] = useState("All");
+    const [documents, setDocuments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const documents = [
-        {
-            id: 1,
-            name: "Green Villa Rental Agreement",
-            type: "Rental Agreement",
-            property: "Green Villa",
-            tenant: "Ali Khan",
-            date: "01 Aug 2026",
-            size: "2.4 MB",
-        },
-        {
-            id: 2,
-            name: "City Apartment Rental Agreement",
-            type: "Rental Agreement",
-            property: "City Apartment",
-            tenant: "Sara Ahmed",
-            date: "03 Aug 2026",
-            size: "1.8 MB",
-        },
-        {
-            id: 3,
-            name: "Model Town House Property Document",
-            type: "Property Document",
-            property: "Model Town House",
-            tenant: "Usman Ali",
-            date: "05 Aug 2026",
-            size: "3.2 MB",
-        },
-        {
-            id: 4,
-            name: "Blue Residency Rental Agreement",
-            type: "Rental Agreement",
-            property: "Blue Residency",
-            tenant: "Ayesha Khan",
-            date: "02 Aug 2026",
-            size: "2.1 MB",
-        },
-        {
-            id: 5,
-            name: "Sunrise Apartment Property Document",
-            type: "Property Document",
-            property: "Sunrise Apartment",
-            tenant: "Hamza Malik",
-            date: "01 Aug 2026",
-            size: "2.7 MB",
-        },
-    ];
+    useEffect(() => {
+        const fetchDocuments = async () => {
+            try {
+                setLoading(true);
+                setError("");
+
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    setError("Please login first.");
+                    setLoading(false);
+                    return;
+                }
+
+                const response = await fetch(
+                    "http://localhost:5000/api/documents",
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || "Failed to fetch documents"
+                    );
+                }
+
+                setDocuments(data.documents || []);
+            } catch (error) {
+                console.error("Documents fetch error:", error);
+                setError(error.message || "Something went wrong");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDocuments();
+    }, []);
 
     const filteredDocuments = documents.filter((document) => {
+        const name = document.name || "";
+        const property = document.property || "";
+        const tenant = document.tenant || "";
+
         const matchesSearch =
-            document.name.toLowerCase().includes(search.toLowerCase()) ||
-            document.property.toLowerCase().includes(search.toLowerCase()) ||
-            document.tenant.toLowerCase().includes(search.toLowerCase());
+            name.toLowerCase().includes(search.toLowerCase()) ||
+            property.toLowerCase().includes(search.toLowerCase()) ||
+            tenant.toLowerCase().includes(search.toLowerCase());
 
         const matchesType =
             typeFilter === "All" || document.type === typeFilter;
@@ -89,14 +90,35 @@ const Documents = () => {
         (document) => document.type === "Property Document"
     ).length;
 
+    const rentReceipts = documents.filter(
+        (document) => document.type === "Rent Receipt"
+    ).length;
+
     const viewDocument = (document) => {
-        alert(
-            `Document: ${document.name}\n\nProperty: ${document.property}\nTenant: ${document.tenant}`
-        );
+        if (!document.url) {
+            alert("Document URL is not available.");
+            return;
+        }
+
+        window.open(document.url, "_blank");
     };
 
     const downloadDocument = (document) => {
-        alert(`Download started for: ${document.name}`);
+        if (!document.url) {
+            alert("Document URL is not available.");
+            return;
+        }
+
+        const link = document.createElement("a");
+
+        link.href = document.url;
+        link.target = "_blank";
+        link.rel = "noopener noreferrer";
+        link.download = document.name || "receipt.pdf";
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     return (
@@ -183,7 +205,6 @@ const Documents = () => {
                             <span>Notifications</span>
                         </button>
 
-                        {/* Active Documents */}
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
@@ -236,7 +257,6 @@ const Documents = () => {
                             </button>
 
                         </div>
-
                     </div>
                 </header>
 
@@ -257,9 +277,9 @@ const Documents = () => {
                     </div>
 
                     {/* Statistics */}
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
+                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
 
-                        {/* Total */}
+                        {/* Total Documents */}
                         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
                             <div className="flex items-center justify-between">
@@ -283,7 +303,6 @@ const Documents = () => {
                                 </div>
 
                             </div>
-
                         </div>
 
                         {/* Rental Agreements */}
@@ -310,7 +329,6 @@ const Documents = () => {
                                 </div>
 
                             </div>
-
                         </div>
 
                         {/* Property Documents */}
@@ -337,7 +355,32 @@ const Documents = () => {
                                 </div>
 
                             </div>
+                        </div>
 
+                        {/* Rent Receipts */}
+                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+
+                            <div className="flex items-center justify-between">
+
+                                <div>
+                                    <p className="text-sm text-slate-500">
+                                        Rent Receipts
+                                    </p>
+
+                                    <h2 className="mt-2 text-3xl font-bold text-blue-600">
+                                        {rentReceipts}
+                                    </h2>
+
+                                    <p className="mt-1 text-xs text-slate-500">
+                                        Payment receipts
+                                    </p>
+                                </div>
+
+                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
+                                    <CircleDollarSign />
+                                </div>
+
+                            </div>
                         </div>
 
                     </div>
@@ -360,6 +403,10 @@ const Documents = () => {
                         >
                             <option value="All">
                                 All Documents
+                            </option>
+
+                            <option value="Rent Receipt">
+                                Rent Receipt
                             </option>
 
                             <option value="Rental Agreement">
@@ -428,83 +475,109 @@ const Documents = () => {
 
                                 <tbody>
 
-                                    {filteredDocuments.map((document) => (
-                                        <tr
-                                            key={document.id}
-                                            className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                                        >
+                                    {loading ? (
+                                        <tr>
+                                            <td
+                                                colSpan="7"
+                                                className="px-6 py-12 text-center text-sm text-slate-500"
+                                            >
+                                                Loading documents...
+                                            </td>
+                                        </tr>
+                                    ) : error ? (
+                                        <tr>
+                                            <td
+                                                colSpan="7"
+                                                className="px-6 py-12 text-center text-sm text-red-500"
+                                            >
+                                                {error}
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        filteredDocuments.map((document) => (
+                                            <tr
+                                                key={document._id || document.id}
+                                                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                                            >
 
-                                            {/* Document */}
-                                            <td className="px-6 py-5">
+                                                {/* Document */}
+                                                <td className="px-6 py-5">
 
-                                                <div className="flex items-center gap-3">
+                                                    <div className="flex items-center gap-3">
 
-                                                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg">
-                                                        <FileText />
+                                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg">
+                                                            <FileText />
+                                                        </div>
+
+                                                        <span className="text-sm font-medium text-slate-700">
+                                                            {document.name}
+                                                        </span>
+
                                                     </div>
 
-                                                    <span className="text-sm font-medium text-slate-700">
-                                                        {document.name}
+                                                </td>
+
+                                                {/* Type */}
+                                                <td className="px-6 py-5">
+
+                                                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
+                                                        {document.type}
                                                     </span>
 
-                                                </div>
+                                                </td>
 
-                                            </td>
+                                                {/* Property */}
+                                                <td className="px-6 py-5 text-sm text-slate-600">
+                                                    {document.property || "N/A"}
+                                                </td>
 
-                                            {/* Type */}
-                                            <td className="px-6 py-5">
+                                                {/* Tenant */}
+                                                <td className="px-6 py-5 text-sm text-slate-600">
+                                                    {document.tenant || "N/A"}
+                                                </td>
 
-                                                <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                                                    {document.type}
-                                                </span>
+                                                {/* Date */}
+                                                <td className="px-6 py-5 text-sm text-slate-600">
+                                                    {document.date || "N/A"}
+                                                </td>
 
-                                            </td>
+                                                {/* Size */}
+                                                <td className="px-6 py-5 text-sm text-slate-600">
+                                                    {document.size || "N/A"}
+                                                </td>
 
-                                            {/* Property */}
-                                            <td className="px-6 py-5 text-sm text-slate-600">
-                                                {document.property}
-                                            </td>
+                                                {/* Actions */}
+                                                <td className="px-6 py-5">
 
-                                            {/* Tenant */}
-                                            <td className="px-6 py-5 text-sm text-slate-600">
-                                                {document.tenant}
-                                            </td>
+                                                    <div className="flex items-center gap-2">
 
-                                            {/* Date */}
-                                            <td className="px-6 py-5 text-sm text-slate-600">
-                                                {document.date}
-                                            </td>
+                                                        <button
+                                                            onClick={() =>
+                                                                viewDocument(document)
+                                                            }
+                                                            className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
+                                                        >
+                                                            View
+                                                        </button>
 
-                                            {/* Size */}
-                                            <td className="px-6 py-5 text-sm text-slate-600">
-                                                {document.size}
-                                            </td>
+                                                        <button
+                                                            onClick={() =>
+                                                                downloadDocument(
+                                                                    document
+                                                                )
+                                                            }
+                                                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-blue-700"
+                                                        >
+                                                            Download
+                                                        </button>
 
-                                            {/* Actions */}
-                                            <td className="px-6 py-5">
+                                                    </div>
 
-                                                <div className="flex items-center gap-2">
+                                                </td>
 
-                                                    <button
-                                                        onClick={() => viewDocument(document)}
-                                                        className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
-                                                    >
-                                                        View
-                                                    </button>
-
-                                                    <button
-                                                        onClick={() => downloadDocument(document)}
-                                                        className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-blue-700"
-                                                    >
-                                                        Download
-                                                    </button>
-
-                                                </div>
-
-                                            </td>
-
-                                        </tr>
-                                    ))}
+                                            </tr>
+                                        ))
+                                    )}
 
                                 </tbody>
 
@@ -513,23 +586,26 @@ const Documents = () => {
                         </div>
 
                         {/* Empty State */}
-                        {filteredDocuments.length === 0 && (
-                            <div className="p-12 text-center">
+                        {!loading &&
+                            !error &&
+                            filteredDocuments.length === 0 && (
+                                <div className="p-12 text-center">
 
-                                <div className="text-5xl">
-                                    <Search />
+                                    <div className="flex justify-center text-slate-400">
+                                        <Search size={48} />
+                                    </div>
+
+                                    <h3 className="mt-4 font-semibold text-slate-800">
+                                        No documents found
+                                    </h3>
+
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Receipts will appear here after tenants
+                                        make rent payments.
+                                    </p>
+
                                 </div>
-
-                                <h3 className="mt-4 font-semibold text-slate-800">
-                                    No documents found
-                                </h3>
-
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Try changing your search or filter.
-                                </p>
-
-                            </div>
-                        )}
+                            )}
 
                     </div>
 
