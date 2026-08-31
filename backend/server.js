@@ -4,6 +4,13 @@ const dotenv = require("dotenv");
 
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
+const propertyRoutes = require("./routes/propertyRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
+const maintenanceRoutes = require("./routes/maintenanceRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
+const documentRoutes = require("./routes/documentRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 
 dotenv.config();
 
@@ -17,6 +24,14 @@ app.use(express.json());
 connectDB();
 
 app.use("/api/auth", authRoutes);
+app.use("/api/properties", propertyRoutes);
+app.use("/api/payments", paymentRoutes);
+app.use("/api/tenants", tenantRoutes);
+app.use("/api/maintenance", maintenanceRoutes);
+app.use("/api/notifications", notificationRoutes);
+app.use("/api/documents", documentRoutes);
+app.use("/api/dashboard", dashboardRoutes);
+
 
 // Test route
 app.get("/", (req, res) => {
