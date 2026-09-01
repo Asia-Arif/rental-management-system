@@ -2,13 +2,13 @@ const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
     {
-        owner: {
+        tenant: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
 
-        tenant: {
+        owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
@@ -23,28 +23,38 @@ const paymentSchema = new mongoose.Schema(
         amount: {
             type: Number,
             required: true,
-            min: 0,
         },
 
-        dueDate: {
+        paymentMethod: {
+            type: String,
+            enum: ["JazzCash", "Bank Transfer", "Cash"],
+            required: true,
+        },
+
+        paymentDate: {
             type: Date,
             required: true,
         },
 
-        paidDate: {
-            type: Date,
-            default: null,
+        screenshot: {
+            type: String,
+            required: true,
         },
 
         status: {
             type: String,
-            enum: ["Paid", "Pending", "Overdue"],
+            enum: ["Pending", "Approved", "Rejected"],
             default: "Pending",
+        },
+
+        rejectionReason: {
+            type: String,
+            default: "",
         },
 
         receipt: {
             type: String,
-            default: null,
+            default: "",
         },
     },
     {

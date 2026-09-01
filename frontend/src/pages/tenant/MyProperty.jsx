@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiBarChart2,
@@ -12,6 +13,65 @@ import {
 
 const MyProperty = () => {
     const navigate = useNavigate();
+
+    const [property, setProperty] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
+
+    // Get logged-in tenant's property
+    useEffect(() => {
+        const fetchMyProperty = async () => {
+            try {
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    navigate("/login");
+                    return;
+                }
+
+                const response = await fetch(
+                    "http://localhost:5000/api/tenants/my-property",
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message ||
+                            "Failed to fetch property"
+                    );
+                }
+
+                setProperty(data.property);
+            } catch (error) {
+                console.error(
+                    "Get my property error:",
+                    error
+                );
+
+                setError(
+                    error.message ||
+                        "Unable to load your property"
+                );
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchMyProperty();
+    }, [navigate]);
+
+    // Logout
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        navigate("/login");
+    };
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -41,16 +101,26 @@ const MyProperty = () => {
 
                     <div className="space-y-2">
 
+                        {/* Dashboard */}
                         <button
-                            onClick={() => navigate("/tenant/dashboard")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/dashboard"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiBarChart2 />
                             <span>Dashboard</span>
                         </button>
 
+                        {/* Join Property */}
                         <button
-                            onClick={() => navigate("/tenant/join-property")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/join-property"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiHome />
@@ -65,32 +135,52 @@ const MyProperty = () => {
                             <span>My Property</span>
                         </button>
 
+                        {/* Rent Payment */}
                         <button
-                            onClick={() => navigate("/tenant/rent-payment")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/rent-payment"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiDollarSign />
                             <span>Rent Payment</span>
                         </button>
 
+                        {/* Maintenance */}
                         <button
-                            onClick={() => navigate("/tenant/maintenance")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/maintenance"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiTool />
                             <span>Maintenance</span>
                         </button>
 
+                        {/* Notifications */}
                         <button
-                            onClick={() => navigate("/tenant/notifications")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/notifications"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiBell />
                             <span>Notifications</span>
                         </button>
 
+                        {/* Documents */}
                         <button
-                            onClick={() => navigate("/tenant/documents")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/documents"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiFileText />
@@ -121,8 +211,13 @@ const MyProperty = () => {
 
                         <div className="flex items-center gap-4">
 
+                            {/* Notification */}
                             <button
-                                onClick={() => navigate("/tenant/notifications")}
+                                onClick={() =>
+                                    navigate(
+                                        "/tenant/notifications"
+                                    )
+                                }
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
                                 <FiBell />
@@ -130,12 +225,14 @@ const MyProperty = () => {
                                 <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
 
+                            {/* Profile */}
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
                                 T
                             </div>
 
+                            {/* Logout */}
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={handleLogout}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -156,277 +253,388 @@ const MyProperty = () => {
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Details about your current rental property and tenancy.
+                            Details about your current rental property.
                         </p>
 
                     </div>
 
-                    {/* Property Header */}
-                    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+                    {/* Loading */}
+                    {loading && (
+                        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
 
-                        {/* Property Banner */}
-                        <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-8 py-8 text-white">
-
-                            <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-
-                                <div className="flex items-center gap-5">
-
-                                    <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 text-4xl">
-                                        <FiHome />
-                                    </div>
-
-                                    <div>
-
-                                        <h2 className="text-2xl font-bold">
-                                            Green Villa
-                                        </h2>
-
-                                        <p className="mt-1 text-sm text-blue-100">
-                                            Street 12, Model Town, Lahore
-                                        </p>
-
-                                        <span className="mt-3 inline-block rounded-full bg-green-400/20 px-3 py-1 text-xs font-medium text-green-100">
-                                            Active Rental
-                                        </span>
-
-                                    </div>
-
-                                </div>
-
-                                <div className="text-left md:text-right">
-
-                                    <p className="text-sm text-blue-100">
-                                        Monthly Rent
-                                    </p>
-
-                                    <p className="mt-1 text-2xl font-bold">
-                                        Rs. 35,000
-                                    </p>
-
-                                </div>
-
-                            </div>
+                            <p className="text-sm text-slate-500">
+                                Loading your property...
+                            </p>
 
                         </div>
+                    )}
 
-                        {/* Property Information */}
-                        <div className="p-8">
+                    {/* Error */}
+                    {!loading && error && (
+                        <div className="rounded-xl border border-red-200 bg-red-50 p-6">
 
-                            <h2 className="text-lg font-semibold text-slate-800">
-                                Property Information
+                            <h2 className="font-semibold text-red-700">
+                                Unable to load property
                             </h2>
 
-                            <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+                            <p className="mt-2 text-sm text-red-600">
+                                {error}
+                            </p>
 
-                                <div className="rounded-lg bg-slate-50 p-5">
-                                    <p className="text-xs text-slate-400">
-                                        Property Type
-                                    </p>
-
-                                    <p className="mt-2 text-sm font-semibold text-slate-700">
-                                        House
-                                    </p>
-                                </div>
-
-                                <div className="rounded-lg bg-slate-50 p-5">
-                                    <p className="text-xs text-slate-400">
-                                        Bedrooms
-                                    </p>
-
-                                    <p className="mt-2 text-sm font-semibold text-slate-700">
-                                        2 Bedrooms
-                                    </p>
-                                </div>
-
-                                <div className="rounded-lg bg-slate-50 p-5">
-                                    <p className="text-xs text-slate-400">
-                                        Bathrooms
-                                    </p>
-
-                                    <p className="mt-2 text-sm font-semibold text-slate-700">
-                                        2 Bathrooms
-                                    </p>
-                                </div>
-
-                                <div className="rounded-lg bg-slate-50 p-5">
-                                    <p className="text-xs text-slate-400">
-                                        Property Code
-                                    </p>
-
-                                    <p className="mt-2 text-sm font-semibold text-blue-600">
-                                        RE-45821
-                                    </p>
-                                </div>
-
-                            </div>
+                            <button
+                                onClick={() =>
+                                    navigate(
+                                        "/tenant/join-property"
+                                    )
+                                }
+                                className="mt-4 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                            >
+                                Join Property
+                            </button>
 
                         </div>
+                    )}
 
-                    </div>
+                    {/* Property */}
+                    {!loading && !error && property && (
+                        <>
+                            {/* Property Header */}
+                            <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
-                    {/* Details Grid */}
-                    <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
+                                {/* Property Banner */}
+                                <div className="bg-gradient-to-r from-blue-600 to-blue-500 px-8 py-8 text-white">
 
-                        {/* Owner Information */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                                    <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
 
-                            <div className="flex items-center gap-3">
+                                        <div className="flex items-center gap-5">
 
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-xl">
-                                    <FiUser />
+                                            <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/20 text-4xl">
+                                                <FiHome />
+                                            </div>
+
+                                            <div>
+
+                                                <h2 className="text-2xl font-bold">
+                                                    {property.name}
+                                                </h2>
+
+                                                <p className="mt-1 text-sm text-blue-100">
+                                                    {property.address}
+                                                    {property.city
+                                                        ? `, ${property.city}`
+                                                        : ""}
+                                                </p>
+
+                                                <span className="mt-3 inline-block rounded-full bg-green-400/20 px-3 py-1 text-xs font-medium text-green-100">
+                                                    {property.status ===
+                                                    "Occupied"
+                                                        ? "Active Rental"
+                                                        : property.status}
+                                                </span>
+
+                                            </div>
+
+                                        </div>
+
+                                        <div className="text-left md:text-right">
+
+                                            <p className="text-sm text-blue-100">
+                                                Monthly Rent
+                                            </p>
+
+                                            <p className="mt-1 text-2xl font-bold">
+                                                Rs.{" "}
+                                                {Number(
+                                                    property.rent || 0
+                                                ).toLocaleString()}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
-                                <div>
-                                    <h2 className="font-semibold text-slate-800">
-                                        Property Owner
+                                {/* Property Information */}
+                                <div className="p-8">
+
+                                    <h2 className="text-lg font-semibold text-slate-800">
+                                        Property Information
                                     </h2>
 
-                                    <p className="text-xs text-slate-500">
-                                        Your landlord information
-                                    </p>
+                                    <div className="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+
+                                        {/* Property Type */}
+                                        <div className="rounded-lg bg-slate-50 p-5">
+
+                                            <p className="text-xs text-slate-400">
+                                                Property Type
+                                            </p>
+
+                                            <p className="mt-2 text-sm font-semibold text-slate-700">
+                                                {property.propertyType ||
+                                                    "Not provided"}
+                                            </p>
+
+                                        </div>
+
+                                        {/* Bedrooms */}
+                                        <div className="rounded-lg bg-slate-50 p-5">
+
+                                            <p className="text-xs text-slate-400">
+                                                Bedrooms
+                                            </p>
+
+                                            <p className="mt-2 text-sm font-semibold text-slate-700">
+                                                {property.bedrooms ??
+                                                    0}{" "}
+                                                {Number(
+                                                    property.bedrooms || 0
+                                                ) === 1
+                                                    ? "Bedroom"
+                                                    : "Bedrooms"}
+                                            </p>
+
+                                        </div>
+
+                                        {/* Bathrooms */}
+                                        <div className="rounded-lg bg-slate-50 p-5">
+
+                                            <p className="text-xs text-slate-400">
+                                                Bathrooms
+                                            </p>
+
+                                            <p className="mt-2 text-sm font-semibold text-slate-700">
+                                                {property.bathrooms ??
+                                                    0}{" "}
+                                                {Number(
+                                                    property.bathrooms || 0
+                                                ) === 1
+                                                    ? "Bathroom"
+                                                    : "Bathrooms"}
+                                            </p>
+
+                                        </div>
+
+                                        {/* Monthly Rent */}
+                                        <div className="rounded-lg bg-slate-50 p-5">
+
+                                            <p className="text-xs text-slate-400">
+                                                Monthly Rent
+                                            </p>
+
+                                            <p className="mt-2 text-sm font-semibold text-blue-600">
+                                                Rs.{" "}
+                                                {Number(
+                                                    property.rent || 0
+                                                ).toLocaleString()}
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    {/* Description */}
+                                    {property.description && (
+                                        <div className="mt-5 rounded-lg bg-slate-50 p-5">
+
+                                            <p className="text-xs text-slate-400">
+                                                Description
+                                            </p>
+
+                                            <p className="mt-2 text-sm leading-6 text-slate-700">
+                                                {
+                                                    property.description
+                                                }
+                                            </p>
+
+                                        </div>
+                                    )}
+
                                 </div>
 
                             </div>
 
-                            <div className="mt-6 space-y-4">
+                            {/* Details Grid */}
+                            <div className="mt-6 grid grid-cols-1 gap-6 lg:grid-cols-2">
 
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <span className="text-sm text-slate-500">
-                                        Name
-                                    </span>
+                                {/* Owner Information */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
-                                    <span className="text-sm font-medium text-slate-700">
-                                        Ahmed Khan
-                                    </span>
+                                    <div className="flex items-center gap-3">
+
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-100 text-xl text-blue-600">
+                                            <FiUser />
+                                        </div>
+
+                                        <div>
+
+                                            <h2 className="font-semibold text-slate-800">
+                                                Property Owner
+                                            </h2>
+
+                                            <p className="text-xs text-slate-500">
+                                                Your landlord information
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div className="mt-6 space-y-4">
+
+                                        {/* Owner Name */}
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+
+                                            <span className="text-sm text-slate-500">
+                                                Name
+                                            </span>
+
+                                            <span className="text-sm font-medium text-slate-700">
+                                                {property.owner?.name ||
+                                                    "Not provided"}
+                                            </span>
+
+                                        </div>
+
+                                        {/* Owner Email */}
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+
+                                            <span className="text-sm text-slate-500">
+                                                Email
+                                            </span>
+
+                                            <span className="break-all text-right text-sm font-medium text-slate-700">
+                                                {property.owner?.email ||
+                                                    "Not provided"}
+                                            </span>
+
+                                        </div>
+
+                                        {/* Owner Phone */}
+                                        <div className="flex items-center justify-between">
+
+                                            <span className="text-sm text-slate-500">
+                                                Phone
+                                            </span>
+
+                                            <span className="text-sm font-medium text-slate-700">
+                                                {property.owner?.phone ||
+                                                    "Not provided"}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <span className="text-sm text-slate-500">
-                                        Email
-                                    </span>
+                                {/* Tenancy Information */}
+                                <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
-                                    <span className="text-sm font-medium text-slate-700">
-                                        ahmed@example.com
-                                    </span>
-                                </div>
+                                    <div className="flex items-center gap-3">
 
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-slate-500">
-                                        Phone
-                                    </span>
+                                        <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-xl text-green-600">
+                                            <FiClipboard />
+                                        </div>
 
-                                    <span className="text-sm font-medium text-slate-700">
-                                        +92 300 1234567
-                                    </span>
+                                        <div>
+
+                                            <h2 className="font-semibold text-slate-800">
+                                                Tenancy Information
+                                            </h2>
+
+                                            <p className="text-xs text-slate-500">
+                                                Your current rental status
+                                            </p>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div className="mt-6 space-y-4">
+
+                                        {/* Rental Status */}
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+
+                                            <span className="text-sm text-slate-500">
+                                                Rental Status
+                                            </span>
+
+                                            <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                                                {property.status ||
+                                                    "Not provided"}
+                                            </span>
+
+                                        </div>
+
+                                        {/* Monthly Rent */}
+                                        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+
+                                            <span className="text-sm text-slate-500">
+                                                Monthly Rent
+                                            </span>
+
+                                            <span className="text-sm font-medium text-slate-700">
+                                                Rs.{" "}
+                                                {Number(
+                                                    property.rent || 0
+                                                ).toLocaleString()}
+                                            </span>
+
+                                        </div>
+
+                                        {/* Property Type */}
+                                        <div className="flex items-center justify-between">
+
+                                            <span className="text-sm text-slate-500">
+                                                Property Type
+                                            </span>
+
+                                            <span className="text-sm font-medium text-slate-700">
+                                                {property.propertyType ||
+                                                    "Not provided"}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
                                 </div>
 
                             </div>
+                        </>
+                    )}
+
+                    {/* No Property */}
+                    {!loading && !error && !property && (
+                        <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+
+                            <div className="flex justify-center text-5xl text-slate-400">
+                                <FiHome />
+                            </div>
+
+                            <h2 className="mt-4 text-lg font-semibold text-slate-800">
+                                No Property Linked
+                            </h2>
+
+                            <p className="mt-2 text-sm text-slate-500">
+                                You are not currently linked to any rental property.
+                            </p>
+
+                            <button
+                                onClick={() =>
+                                    navigate(
+                                        "/tenant/join-property"
+                                    )
+                                }
+                                className="mt-5 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                            >
+                                Join Property
+                            </button>
 
                         </div>
-
-                        {/* Tenancy Information */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center gap-3">
-
-                                <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-green-100 text-xl">
-                                    <FiClipboard />
-                                </div>
-
-                                <div>
-                                    <h2 className="font-semibold text-slate-800">
-                                        Tenancy Information
-                                    </h2>
-
-                                    <p className="text-xs text-slate-500">
-                                        Your rental agreement details
-                                    </p>
-                                </div>
-
-                            </div>
-
-                            <div className="mt-6 space-y-4">
-
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <span className="text-sm text-slate-500">
-                                        Start Date
-                                    </span>
-
-                                    <span className="text-sm font-medium text-slate-700">
-                                        01 Aug 2026
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                                    <span className="text-sm text-slate-500">
-                                        Rent Due Date
-                                    </span>
-
-                                    <span className="text-sm font-medium text-slate-700">
-                                        01 of every month
-                                    </span>
-                                </div>
-
-                                <div className="flex items-center justify-between">
-                                    <span className="text-sm text-slate-500">
-                                        Security Deposit
-                                    </span>
-
-                                    <span className="text-sm font-medium text-slate-700">
-                                        Rs. 70,000
-                                    </span>
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    {/* Quick Actions */}
-                    <div className="mt-6 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                        <h2 className="text-lg font-semibold text-slate-800">
-                            Quick Actions
-                        </h2>
-
-                        <p className="mt-1 text-sm text-slate-500">
-                            Manage your rental from here.
-                        </p>
-
-                        <div className="mt-5 flex flex-wrap gap-3">
-
-                            <button
-                                onClick={() => navigate("/tenant/rent-payment")}
-                                className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
-                            >
-                                <FiDollarSign className="mr-1 inline-block" /> Pay Rent
-                            </button>
-
-                            <button
-                                onClick={() => navigate("/tenant/maintenance")}
-                                className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                            >
-                                <FiTool className="mr-1 inline-block" /> Request Maintenance
-                            </button>
-
-                            <button
-                                onClick={() => navigate("/tenant/documents")}
-                                className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                            >
-                                <FiFileText className="mr-1 inline-block" /> View Documents
-                            </button>
-
-                            <button
-                                onClick={() => navigate("/tenant/notifications")}
-                                className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
-                            >
-                                <FiBell className="mr-1 inline-block" /> Notifications
-                            </button>
-
-                        </div>
-
-                    </div>
+                    )}
 
                 </main>
             </div>

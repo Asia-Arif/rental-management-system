@@ -1,6 +1,8 @@
 const express = require("express");
 
 const {
+    createTenantMaintenance,
+    getTenantMaintenance,
     getOwnerMaintenance,
     updateMaintenanceStatus,
     getMaintenanceById,
@@ -12,7 +14,33 @@ const roleMiddleware = require("../middleware/roleMiddleware");
 const router = express.Router();
 
 
-// Get Owner Maintenance Requests
+// =====================================================
+// TENANT ROUTES
+// =====================================================
+
+// Create maintenance request
+router.post(
+    "/",
+    authMiddleware,
+    roleMiddleware("tenant"),
+    createTenantMaintenance
+);
+
+
+// Get tenant's own maintenance requests
+router.get(
+    "/tenant",
+    authMiddleware,
+    roleMiddleware("tenant"),
+    getTenantMaintenance
+);
+
+
+// =====================================================
+// OWNER ROUTES
+// =====================================================
+
+// Get owner maintenance requests
 router.get(
     "/",
     authMiddleware,
@@ -21,7 +49,7 @@ router.get(
 );
 
 
-// Update Maintenance Status
+// Update maintenance status
 router.put(
     "/:id/status",
     authMiddleware,
@@ -30,7 +58,7 @@ router.put(
 );
 
 
-// Get Single Maintenance Request
+// Get single maintenance request
 router.get(
     "/:id",
     authMiddleware,

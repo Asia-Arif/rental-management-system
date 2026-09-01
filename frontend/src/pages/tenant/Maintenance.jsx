@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiBarChart2,
@@ -17,51 +17,166 @@ const Maintenance = () => {
     const [issueType, setIssueType] = useState("");
     const [description, setDescription] = useState("");
     const [priority, setPriority] = useState("Medium");
+
     const [message, setMessage] = useState("");
+    const [messageType, setMessageType] = useState("");
 
-    const requests = [
-        {
-            id: 1,
-            issue: "Water Leakage",
-            description: "Water is leaking from the kitchen sink.",
-            date: "20 Aug 2026",
-            priority: "High",
-            status: "In Progress",
-        },
-        {
-            id: 2,
-            issue: "Air Conditioner",
-            description: "AC is not cooling properly.",
-            date: "12 Aug 2026",
-            priority: "Medium",
-            status: "Completed",
-        },
-        {
-            id: 3,
-            issue: "Electricity",
-            description: "Bedroom light is not working.",
-            date: "05 Aug 2026",
-            priority: "Low",
-            status: "Completed",
-        },
-    ];
+    const [requests, setRequests] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
 
-    const handleSubmit = (e) => {
+
+    // =====================================================
+    // GET TENANT MAINTENANCE REQUESTS
+    // =====================================================
+
+    const fetchMaintenanceRequests = async () => {
+        try {
+            setLoading(true);
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                setMessage("Please login as a tenant first.");
+                setMessageType("error");
+                return;
+            }
+
+            const response = await fetch(
+                "http://localhost:5000/api/maintenance/tenant",
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setMessage(
+                    data.message || "Failed to load maintenance requests."
+                );
+                setMessageType("error");
+                return;
+            }
+
+            setRequests(data.requests || []);
+        } catch (error) {
+            console.error("Fetch maintenance error:", error);
+
+            setMessage(
+                "Unable to connect to the server. Please try again."
+            );
+            setMessageType("error");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+
+    // =====================================================
+    // LOAD DATA
+    // =====================================================
+
+    useEffect(() => {
+        fetchMaintenanceRequests();
+    }, []);
+
+
+    // =====================================================
+    // SUBMIT MAINTENANCE REQUEST
+    // =====================================================
+
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!issueType || !description) {
+        if (!issueType || !description.trim()) {
             setMessage("Please fill in all required fields.");
+            setMessageType("error");
             return;
         }
 
-        setMessage(
-            "Maintenance request submitted successfully!"
-        );
+        try {
+            setSubmitting(true);
+            setMessage("");
+            setMessageType("");
 
-        setIssueType("");
-        setDescription("");
-        setPriority("Medium");
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                setMessage("Please login as a tenant first.");
+                setMessageType("error");
+                return;
+            }
+
+            const response = await fetch(
+                "http://localhost:5000/api/maintenance",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        issue: issueType,
+                        description: description.trim(),
+                        priority,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setMessage(
+                    data.message || "Failed to submit maintenance request."
+                );
+                setMessageType("error");
+                return;
+            }
+
+            setMessage(
+                data.message ||
+                    "Maintenance request submitted successfully!"
+            );
+            setMessageType("success");
+
+            // Reset form
+            setIssueType("");
+            setDescription("");
+            setPriority("Medium");
+
+            // Refresh requests
+            await fetchMaintenanceRequests();
+        } catch (error) {
+            console.error("Submit maintenance error:", error);
+
+            setMessage(
+                "Unable to connect to the server. Please try again."
+            );
+            setMessageType("error");
+        } finally {
+            setSubmitting(false);
+        }
     };
+
+
+    // =====================================================
+    // STATISTICS
+    // =====================================================
+
+    const totalRequests = requests.length;
+
+    const inProgressRequests = requests.filter(
+        (request) => request.status === "In Progress"
+    ).length;
+
+    const completedRequests = requests.filter(
+        (request) => request.status === "Completed"
+    ).length;
+
 
     return (
         <div className="min-h-screen bg-slate-50">
@@ -91,6 +206,7 @@ const Maintenance = () => {
 
                     <div className="space-y-2">
 
+                        {/* Dashboard */}
                         <button
                             onClick={() => navigate("/tenant/dashboard")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -99,6 +215,7 @@ const Maintenance = () => {
                             <span>Dashboard</span>
                         </button>
 
+                        {/* Join Property */}
                         <button
                             onClick={() => navigate("/tenant/join-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -107,6 +224,7 @@ const Maintenance = () => {
                             <span>Join Property</span>
                         </button>
 
+                        {/* My Property */}
                         <button
                             onClick={() => navigate("/tenant/my-property")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -115,6 +233,7 @@ const Maintenance = () => {
                             <span>My Property</span>
                         </button>
 
+                        {/* Rent Payment */}
                         <button
                             onClick={() => navigate("/tenant/rent-payment")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -131,6 +250,7 @@ const Maintenance = () => {
                             <span>Maintenance</span>
                         </button>
 
+                        {/* Notifications */}
                         <button
                             onClick={() => navigate("/tenant/notifications")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -139,6 +259,7 @@ const Maintenance = () => {
                             <span>Notifications</span>
                         </button>
 
+                        {/* Documents */}
                         <button
                             onClick={() => navigate("/tenant/documents")}
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
@@ -150,6 +271,7 @@ const Maintenance = () => {
                     </div>
                 </nav>
             </aside>
+
 
             {/* Main Content */}
             <div className="ml-64">
@@ -172,7 +294,9 @@ const Maintenance = () => {
                         <div className="flex items-center gap-4">
 
                             <button
-                                onClick={() => navigate("/tenant/notifications")}
+                                onClick={() =>
+                                    navigate("/tenant/notifications")
+                                }
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
                                 <FiBell />
@@ -185,7 +309,11 @@ const Maintenance = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={() => {
+                                    localStorage.removeItem("token");
+                                    localStorage.removeItem("user");
+                                    navigate("/login");
+                                }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -195,6 +323,7 @@ const Maintenance = () => {
 
                     </div>
                 </header>
+
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
@@ -207,10 +336,12 @@ const Maintenance = () => {
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Report an issue and keep track of your maintenance requests.
+                            Report an issue and keep track of your maintenance
+                            requests.
                         </p>
 
                     </div>
+
 
                     {/* Statistics */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -226,7 +357,7 @@ const Maintenance = () => {
                                     </p>
 
                                     <h2 className="mt-2 text-2xl font-bold text-slate-800">
-                                        3
+                                        {totalRequests}
                                     </h2>
                                 </div>
 
@@ -237,6 +368,7 @@ const Maintenance = () => {
                             </div>
 
                         </div>
+
 
                         {/* In Progress */}
                         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -249,7 +381,7 @@ const Maintenance = () => {
                                     </p>
 
                                     <h2 className="mt-2 text-2xl font-bold text-yellow-600">
-                                        1
+                                        {inProgressRequests}
                                     </h2>
                                 </div>
 
@@ -260,6 +392,7 @@ const Maintenance = () => {
                             </div>
 
                         </div>
+
 
                         {/* Completed */}
                         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -272,7 +405,7 @@ const Maintenance = () => {
                                     </p>
 
                                     <h2 className="mt-2 text-2xl font-bold text-green-600">
-                                        2
+                                        {completedRequests}
                                     </h2>
                                 </div>
 
@@ -286,6 +419,7 @@ const Maintenance = () => {
 
                     </div>
 
+
                     {/* New Request */}
                     <div className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -296,7 +430,8 @@ const Maintenance = () => {
                             </h2>
 
                             <p className="mt-1 text-sm text-slate-500">
-                                Tell your property owner about a problem in your property.
+                                Tell your property owner about a problem in your
+                                property.
                             </p>
 
                         </div>
@@ -314,7 +449,9 @@ const Maintenance = () => {
 
                                     <select
                                         value={issueType}
-                                        onChange={(e) => setIssueType(e.target.value)}
+                                        onChange={(e) =>
+                                            setIssueType(e.target.value)
+                                        }
                                         className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
 
@@ -350,6 +487,7 @@ const Maintenance = () => {
 
                                 </div>
 
+
                                 {/* Priority */}
                                 <div>
 
@@ -359,7 +497,9 @@ const Maintenance = () => {
 
                                     <select
                                         value={priority}
-                                        onChange={(e) => setPriority(e.target.value)}
+                                        onChange={(e) =>
+                                            setPriority(e.target.value)
+                                        }
                                         className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
 
@@ -379,6 +519,7 @@ const Maintenance = () => {
 
                                 </div>
 
+
                                 {/* Description */}
                                 <div className="md:col-span-2">
 
@@ -388,7 +529,9 @@ const Maintenance = () => {
 
                                     <textarea
                                         value={description}
-                                        onChange={(e) => setDescription(e.target.value)}
+                                        onChange={(e) =>
+                                            setDescription(e.target.value)
+                                        }
                                         rows="5"
                                         placeholder="Describe the problem..."
                                         className="w-full resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
@@ -398,22 +541,34 @@ const Maintenance = () => {
 
                             </div>
 
+
                             {/* Message */}
                             {message && (
-                                <div className="mt-5 rounded-lg bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                                <div
+                                    className={`mt-5 rounded-lg px-4 py-3 text-sm ${
+                                        messageType === "success"
+                                            ? "border border-green-200 bg-green-50 text-green-700"
+                                            : "border border-red-200 bg-red-50 text-red-700"
+                                    }`}
+                                >
                                     {message}
                                 </div>
                             )}
+
 
                             {/* Submit */}
                             <div className="mt-6 flex justify-end">
 
                                 <button
                                     type="submit"
-                                    className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                                    disabled={submitting}
+                                    className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
                                     <FiTool className="mr-1 inline-block" />
-                                    Submit Request
+
+                                    {submitting
+                                        ? "Submitting..."
+                                        : "Submit Request"}
                                 </button>
 
                             </div>
@@ -421,6 +576,7 @@ const Maintenance = () => {
                         </form>
 
                     </div>
+
 
                     {/* Request History */}
                     <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -437,72 +593,115 @@ const Maintenance = () => {
 
                         </div>
 
+
                         <div className="divide-y divide-slate-100">
 
-                            {requests.map((request) => (
-                                <div
-                                    key={request.id}
-                                    className="p-6 transition hover:bg-slate-50"
-                                >
+                            {loading ? (
 
-                                    <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                                <div className="p-8 text-center text-sm text-slate-500">
+                                    Loading maintenance requests...
+                                </div>
 
-                                        {/* Request Info */}
-                                        <div className="flex gap-4">
+                            ) : requests.length === 0 ? (
 
-                                            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl">
-                                                <FiTool />
+                                <div className="p-8 text-center">
+
+                                    <FiTool className="mx-auto text-3xl text-slate-300" />
+
+                                    <p className="mt-3 text-sm text-slate-500">
+                                        No maintenance requests yet.
+                                    </p>
+
+                                </div>
+
+                            ) : (
+
+                                requests.map((request) => (
+
+                                    <div
+                                        key={request._id}
+                                        className="p-6 transition hover:bg-slate-50"
+                                    >
+
+                                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+
+                                            {/* Request Info */}
+                                            <div className="flex gap-4">
+
+                                                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-2xl">
+                                                    <FiTool />
+                                                </div>
+
+                                                <div>
+
+                                                    <h3 className="font-semibold text-slate-800">
+                                                        {request.issue}
+                                                    </h3>
+
+                                                    <p className="mt-1 text-sm text-slate-500">
+                                                        {request.description}
+                                                    </p>
+
+                                                    <p className="mt-2 text-xs text-slate-400">
+                                                        Submitted:{" "}
+                                                        {new Date(
+                                                            request.createdAt
+                                                        ).toLocaleDateString(
+                                                            "en-GB",
+                                                            {
+                                                                day: "2-digit",
+                                                                month: "short",
+                                                                year: "numeric",
+                                                            }
+                                                        )}
+                                                    </p>
+
+                                                </div>
+
                                             </div>
 
-                                            <div>
 
-                                                <h3 className="font-semibold text-slate-800">
-                                                    {request.issue}
-                                                </h3>
+                                            {/* Status */}
+                                            <div className="flex flex-wrap items-center gap-3">
 
-                                                <p className="mt-1 text-sm text-slate-500">
-                                                    {request.description}
-                                                </p>
-
-                                                <p className="mt-2 text-xs text-slate-400">
-                                                    Submitted: {request.date}
-                                                </p>
-
-                                            </div>
-
-                                        </div>
-
-                                        {/* Status */}
-                                        <div className="flex items-center gap-4">
-
-                                            <span
-                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                                    request.priority === "High"
-                                                        ? "bg-red-100 text-red-700"
-                                                        : request.priority === "Medium"
+                                                <span
+                                                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                        request.priority ===
+                                                        "High"
+                                                            ? "bg-red-100 text-red-700"
+                                                            : request.priority ===
+                                                              "Medium"
                                                             ? "bg-yellow-100 text-yellow-700"
                                                             : "bg-green-100 text-green-700"
-                                                }`}
-                                            >
-                                                {request.priority} Priority
-                                            </span>
+                                                    }`}
+                                                >
+                                                    {request.priority} Priority
+                                                </span>
 
-                                            <span
-                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                                    request.status === "Completed"
-                                                        ? "bg-green-100 text-green-700"
-                                                        : "bg-yellow-100 text-yellow-700"
-                                                }`}
-                                            >
-                                                {request.status}
-                                            </span>
+
+                                                <span
+                                                    className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                        request.status ===
+                                                        "Completed"
+                                                            ? "bg-green-100 text-green-700"
+                                                            : request.status ===
+                                                              "In Progress"
+                                                            ? "bg-yellow-100 text-yellow-700"
+                                                            : "bg-blue-100 text-blue-700"
+                                                    }`}
+                                                >
+                                                    {request.status}
+                                                </span>
+
+                                            </div>
 
                                         </div>
 
                                     </div>
 
-                                </div>
-                            ))}
+                                ))
+
+                            )}
 
                         </div>
 

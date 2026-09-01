@@ -16,18 +16,65 @@ const JoinProperty = () => {
     const [propertyCode, setPropertyCode] = useState("");
     const [message, setMessage] = useState("");
     const [joined, setJoined] = useState(false);
+    const [property, setProperty] = useState(null);
+    const [loading, setLoading] = useState(false);
 
-    const handleJoinProperty = (e) => {
+    const handleJoinProperty = async (e) => {
         e.preventDefault();
 
         if (!propertyCode.trim()) {
             setMessage("Please enter a property code.");
+            setJoined(false);
+            setProperty(null);
             return;
         }
 
-        // Frontend demo
-        setJoined(true);
-        setMessage("Property found! You can now join this property.");
+        try {
+            setLoading(true);
+            setMessage("");
+            setJoined(false);
+            setProperty(null);
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                setMessage("Please login as a tenant first.");
+                return;
+            }
+
+            const response = await fetch(
+                "http://localhost:5000/api/tenants/accept-invite",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        inviteCode: propertyCode.trim(),
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                setMessage(data.message || "Failed to join property.");
+                return;
+            }
+
+            setJoined(true);
+            setProperty(data.property);
+            setMessage(data.message || "Property joined successfully!");
+
+        } catch (error) {
+            console.error("Join property error:", error);
+            setMessage(
+                "Unable to connect to the server. Please try again."
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -219,25 +266,27 @@ const JoinProperty = () => {
 
                                 <input
                                     type="text"
-                                    placeholder="Example: RE-45821"
+                                    placeholder="Example: 458921"
                                     value={propertyCode}
                                     onChange={(e) => {
                                         setPropertyCode(e.target.value);
                                         setMessage("");
                                         setJoined(false);
+                                        setProperty(null);
                                     }}
                                     className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm uppercase outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
 
                                 <p className="mt-2 text-xs text-slate-400">
-                                    Enter the code exactly as provided by your owner.
+                                    Enter the 6-digit code sent to your email by the owner.
                                 </p>
 
                                 <button
                                     type="submit"
-                                    className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                                    disabled={loading}
+                                    className="mt-6 w-full rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                    Find Property
+                                    {loading ? "Joining Property..." : "Join Property"}
                                 </button>
 
                             </form>
@@ -256,7 +305,7 @@ const JoinProperty = () => {
                             )}
 
                             {/* Property Preview */}
-                            {joined && (
+                            {joined && property && (
                                 <div className="mt-6 rounded-xl border border-slate-200 bg-slate-50 p-5">
 
                                     <div className="flex items-start gap-4">
@@ -271,16 +320,16 @@ const JoinProperty = () => {
 
                                                 <div>
                                                     <h3 className="font-semibold text-slate-800">
-                                                        Green Villa
+                                                        {property.name}
                                                     </h3>
 
                                                     <p className="mt-1 text-sm text-slate-500">
-                                                        Street 12, Model Town, Lahore
+                                                        {property.address}, {property.city}
                                                     </p>
                                                 </div>
 
                                                 <span className="w-fit rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                                                    Available
+                                                    Joined
                                                 </span>
 
                                             </div>
@@ -293,7 +342,7 @@ const JoinProperty = () => {
                                                     </p>
 
                                                     <p className="mt-1 text-sm font-semibold text-slate-700">
-                                                        2
+                                                        {property.bedrooms}
                                                     </p>
                                                 </div>
 
@@ -303,7 +352,7 @@ const JoinProperty = () => {
                                                     </p>
 
                                                     <p className="mt-1 text-sm font-semibold text-slate-700">
-                                                        Rs. 35,000
+                                                        Rs. {property.rent?.toLocaleString()}
                                                     </p>
                                                 </div>
 
@@ -313,7 +362,7 @@ const JoinProperty = () => {
                                                     </p>
 
                                                     <p className="mt-1 text-sm font-semibold text-slate-700">
-                                                        Ahmed Khan
+                                                        {property.owner?.name || "Owner"}
                                                     </p>
                                                 </div>
 
@@ -325,7 +374,7 @@ const JoinProperty = () => {
                                                 }
                                                 className="mt-5 rounded-lg bg-green-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-green-700"
                                             >
-                                                Join Property
+                                                View My Property
                                             </button>
 
                                         </div>
@@ -363,7 +412,7 @@ const JoinProperty = () => {
                                         </h3>
 
                                         <p className="mt-1 text-xs leading-5 text-slate-500">
-                                            Ask your property owner for the unique property code.
+                                            The owner will send you a unique invite code by email.
                                         </p>
                                     </div>
 
@@ -382,7 +431,7 @@ const JoinProperty = () => {
                                         </h3>
 
                                         <p className="mt-1 text-xs leading-5 text-slate-500">
-                                            Enter the code in the form and find your property.
+                                            Enter the 6-digit code in the form and join your property.
                                         </p>
                                     </div>
 
@@ -397,11 +446,11 @@ const JoinProperty = () => {
 
                                     <div>
                                         <h3 className="text-sm font-semibold text-slate-700">
-                                            Confirm your property
+                                            View your property
                                         </h3>
 
                                         <p className="mt-1 text-xs leading-5 text-slate-500">
-                                            Check the property details before joining.
+                                            After joining, you can view your rental property details.
                                         </p>
                                     </div>
 
@@ -414,8 +463,8 @@ const JoinProperty = () => {
 
                                 <p className="text-xs leading-5 text-blue-700">
                                     <FiInfo className="mr-1 inline-block" />
-                                    Make sure the property details match the information
-                                    provided by your owner before joining.
+                                    Make sure you are logged in with the same email address
+                                    that received the property invitation.
                                 </p>
 
                             </div>

@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -23,7 +24,7 @@ const Payments = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
-    // Get payments from backend
+    // Get Owner Payments from Backend
     useEffect(() => {
         const fetchPayments = async () => {
             try {
@@ -89,30 +90,33 @@ const Payments = () => {
     });
 
     // Statistics
-    const paidPayments = payments.filter(
-        (payment) => payment.status === "Paid"
+    const approvedPayments = payments.filter(
+        (payment) => payment.status === "Approved"
     );
 
     const pendingPayments = payments.filter(
         (payment) => payment.status === "Pending"
     );
 
-    const overduePayments = payments.filter(
-        (payment) => payment.status === "Overdue"
+    const rejectedPayments = payments.filter(
+        (payment) => payment.status === "Rejected"
     );
 
-    const totalCollected = paidPayments.reduce(
-        (total, payment) => total + Number(payment.amount || 0),
+    const totalCollected = approvedPayments.reduce(
+        (total, payment) =>
+            total + Number(payment.amount || 0),
         0
     );
 
     const totalPending = pendingPayments.reduce(
-        (total, payment) => total + Number(payment.amount || 0),
+        (total, payment) =>
+            total + Number(payment.amount || 0),
         0
     );
 
-    const totalOverdue = overduePayments.reduce(
-        (total, payment) => total + Number(payment.amount || 0),
+    const totalRejected = rejectedPayments.reduce(
+        (total, payment) =>
+            total + Number(payment.amount || 0),
         0
     );
 
@@ -290,9 +294,17 @@ const Payments = () => {
                             </div>
 
                             <button
-                                onClick={() =>
-                                    navigate("/login")
-                                }
+                                onClick={() => {
+                                    localStorage.removeItem(
+                                        "token"
+                                    );
+
+                                    localStorage.removeItem(
+                                        "user"
+                                    );
+
+                                    navigate("/login");
+                                }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -314,8 +326,8 @@ const Payments = () => {
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Monitor paid, pending and overdue rental
-                            payments.
+                            Monitor approved, pending and rejected
+                            rental payments.
                         </p>
 
                     </div>
@@ -338,6 +350,7 @@ const Payments = () => {
 
                     {!loading && !error && (
                         <>
+
                             {/* Statistics */}
                             <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
 
@@ -358,7 +371,7 @@ const Payments = () => {
                                             </h2>
 
                                             <p className="mt-1 text-xs text-slate-500">
-                                                Paid payments
+                                                Approved payments
                                             </p>
                                         </div>
 
@@ -389,7 +402,7 @@ const Payments = () => {
                                             </h2>
 
                                             <p className="mt-1 text-xs text-slate-500">
-                                                Awaiting payment
+                                                Awaiting approval
                                             </p>
                                         </div>
 
@@ -401,24 +414,24 @@ const Payments = () => {
 
                                 </div>
 
-                                {/* Overdue Rent */}
+                                {/* Rejected Rent */}
                                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
                                     <div className="flex items-center justify-between">
 
                                         <div>
                                             <p className="text-sm text-slate-500">
-                                                Overdue Rent
+                                                Rejected
                                             </p>
 
                                             <h2 className="mt-2 text-2xl font-bold text-red-600">
                                                 {formatAmount(
-                                                    totalOverdue
+                                                    totalRejected
                                                 )}
                                             </h2>
 
                                             <p className="mt-1 text-xs text-slate-500">
-                                                Requires attention
+                                                Rejected payment proofs
                                             </p>
                                         </div>
 
@@ -444,13 +457,12 @@ const Payments = () => {
 
                                             <h2 className="mt-2 text-2xl font-bold text-blue-600">
                                                 {formatAmount(
-                                                    totalPending +
-                                                        totalOverdue
+                                                    totalPending
                                                 )}
                                             </h2>
 
                                             <p className="mt-1 text-xs text-slate-500">
-                                                Pending + overdue
+                                                Pending approval
                                             </p>
                                         </div>
 
@@ -501,16 +513,16 @@ const Payments = () => {
                                         All Payments
                                     </option>
 
-                                    <option value="Paid">
-                                        Paid
+                                    <option value="Approved">
+                                        Approved
                                     </option>
 
                                     <option value="Pending">
                                         Pending
                                     </option>
 
-                                    <option value="Overdue">
-                                        Overdue
+                                    <option value="Rejected">
+                                        Rejected
                                     </option>
                                 </select>
 
@@ -526,8 +538,8 @@ const Payments = () => {
                                     </h2>
 
                                     <p className="mt-1 text-xs text-slate-500">
-                                        Rental payment records for your
-                                        tenants.
+                                        Rental payment records submitted
+                                        by your tenants.
                                     </p>
 
                                 </div>
@@ -553,11 +565,11 @@ const Payments = () => {
                                                     </th>
 
                                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                                        Due Date
+                                                        Payment Date
                                                     </th>
 
                                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                                        Paid Date
+                                                        Method
                                                     </th>
 
                                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
@@ -565,7 +577,7 @@ const Payments = () => {
                                                     </th>
 
                                                     <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                                        Receipt
+                                                        Action
                                                     </th>
 
                                                 </tr>
@@ -598,6 +610,7 @@ const Payments = () => {
                                                                     </div>
 
                                                                     <div>
+
                                                                         <span className="text-sm font-medium text-slate-700">
                                                                             {payment
                                                                                 .tenant
@@ -616,6 +629,7 @@ const Payments = () => {
                                                                                 }
                                                                             </p>
                                                                         )}
+
                                                                     </div>
 
                                                                 </div>
@@ -626,6 +640,7 @@ const Payments = () => {
                                                             <td className="px-6 py-5">
 
                                                                 <div>
+
                                                                     <p className="text-sm font-medium text-slate-700">
                                                                         {payment
                                                                             .property
@@ -639,6 +654,7 @@ const Payments = () => {
                                                                             ?.city ||
                                                                             ""}
                                                                     </p>
+
                                                                 </div>
 
                                                             </td>
@@ -650,18 +666,18 @@ const Payments = () => {
                                                                 )}
                                                             </td>
 
-                                                            {/* Due Date */}
+                                                            {/* Payment Date */}
                                                             <td className="px-6 py-5 text-sm text-slate-600">
                                                                 {formatDate(
-                                                                    payment.dueDate
+                                                                    payment.paymentDate
                                                                 )}
                                                             </td>
 
-                                                            {/* Paid Date */}
+                                                            {/* Payment Method */}
                                                             <td className="px-6 py-5 text-sm text-slate-600">
-                                                                {formatDate(
-                                                                    payment.paidDate
-                                                                )}
+                                                                {
+                                                                    payment.paymentMethod
+                                                                }
                                                             </td>
 
                                                             {/* Status */}
@@ -670,7 +686,7 @@ const Payments = () => {
                                                                 <span
                                                                     className={`rounded-full px-3 py-1 text-xs font-medium ${
                                                                         payment.status ===
-                                                                        "Paid"
+                                                                        "Approved"
                                                                             ? "bg-green-100 text-green-700"
                                                                             : payment.status ===
                                                                               "Pending"
@@ -685,11 +701,11 @@ const Payments = () => {
 
                                                             </td>
 
-                                                            {/* Receipt */}
+                                                            {/* Action */}
                                                             <td className="px-6 py-5">
 
                                                                 {payment.status ===
-                                                                "Paid" ? (
+                                                                "Pending" ? (
                                                                     <button
                                                                         onClick={() =>
                                                                             navigate(
@@ -698,19 +714,24 @@ const Payments = () => {
                                                                         }
                                                                         className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
                                                                     >
-                                                                        View Receipt
+                                                                        Review
                                                                     </button>
                                                                 ) : (
-                                                                    <span className="text-xs text-slate-400">
-                                                                        Not
-                                                                        available
-                                                                    </span>
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            navigate(
+                                                                                `/owner/payments/${payment._id}`
+                                                                            )
+                                                                        }
+                                                                        className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
+                                                                    >
+                                                                        View
+                                                                    </button>
                                                                 )}
 
                                                             </td>
 
                                                         </tr>
-
                                                     )
                                                 )}
 
@@ -741,6 +762,7 @@ const Payments = () => {
                                 )}
 
                             </div>
+
                         </>
                     )}
 
@@ -752,3 +774,4 @@ const Payments = () => {
 };
 
 export default Payments;
+

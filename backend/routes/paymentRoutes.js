@@ -1,27 +1,41 @@
 const express = require("express");
+const router = express.Router();
 
 const {
-    createPayment,
+    submitPaymentProof,
+    getTenantPayments,
+    getTenantProperty,
     getOwnerPayments,
-    getPaymentById,
+    approvePayment,
+    rejectPayment,
 } = require("../controllers/paymentController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-const router = express.Router();
-
-
-// Create Payment
+// Tenant
 router.post(
-    "/",
+    "/submit",
     authMiddleware,
-    roleMiddleware("owner"),
-    createPayment
+    roleMiddleware("tenant"),
+    submitPaymentProof
 );
 
+router.get(
+    "/tenant",
+    authMiddleware,
+    roleMiddleware("tenant"),
+    getTenantPayments
+);
 
-// Get Owner Payments
+router.get(
+    "/tenant/property",
+    authMiddleware,
+    roleMiddleware("tenant"),
+    getTenantProperty
+);
+
+// Owner
 router.get(
     "/",
     authMiddleware,
@@ -29,14 +43,18 @@ router.get(
     getOwnerPayments
 );
 
-
-// Get Single Payment
-router.get(
-    "/:id",
+router.put(
+    "/:paymentId/approve",
     authMiddleware,
     roleMiddleware("owner"),
-    getPaymentById
+    approvePayment
 );
 
+router.put(
+    "/:paymentId/reject",
+    authMiddleware,
+    roleMiddleware("owner"),
+    rejectPayment
+);
 
 module.exports = router;
