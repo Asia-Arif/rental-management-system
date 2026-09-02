@@ -9,125 +9,496 @@ import {
     Wrench,
     Bell,
     FileText,
-    Search,
+    Upload,
+    Download,
+    Eye,
     FilePenLine,
 } from "lucide-react";
+
+const API_URL = "http://localhost:5000/api";
+
+const documentTypes = [
+    {
+        type: "Rental Agreement",
+        description:
+            "Common rental agreement for your tenants.",
+        icon: FilePenLine,
+    },
+    {
+        type: "Property Rules & Regulations",
+        description:
+            "Common property rules and regulations for your tenants.",
+        icon: House,
+    },
+];
 
 const Documents = () => {
     const navigate = useNavigate();
 
-    const [search, setSearch] = useState("");
-    const [typeFilter, setTypeFilter] = useState("All");
-    const [documents, setDocuments] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState("");
+    const [documents, setDocuments] =
+        useState([]);
 
-    useEffect(() => {
-        const fetchDocuments = async () => {
-            try {
-                setLoading(true);
-                setError("");
+    const [loading, setLoading] =
+        useState(true);
 
-                const token = localStorage.getItem("token");
+    const [uploadingType, setUploadingType] =
+        useState("");
 
-                if (!token) {
-                    setError("Please login first.");
-                    setLoading(false);
-                    return;
-                }
+    const [message, setMessage] =
+        useState("");
 
-                const response = await fetch(
-                    "http://localhost:5000/api/documents",
+    const [error, setError] =
+        useState("");
+
+    const [viewingId, setViewingId] =
+        useState(null);
+
+    const [downloadingId, setDownloadingId] =
+        useState(null);
+
+    // ============================================
+    // FETCH OWNER DOCUMENTS
+    // ============================================
+    const fetchDocuments = async () => {
+        try {
+            setLoading(true);
+            setError("");
+
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+            if (!token) {
+                setError(
+                    "Please login first."
+                );
+                return;
+            }
+
+            const response =
+                await fetch(
+                    `${API_URL}/documents`,
                     {
                         method: "GET",
                         headers: {
-                            Authorization: `Bearer ${token}`,
+                            Authorization:
+                                `Bearer ${token}`,
                         },
                     }
                 );
 
-                const data = await response.json();
+            const data =
+                await response.json();
 
-                if (!response.ok) {
-                    throw new Error(
-                        data.message || "Failed to fetch documents"
-                    );
-                }
-
-                setDocuments(data.documents || []);
-            } catch (error) {
-                console.error("Documents fetch error:", error);
-                setError(error.message || "Something went wrong");
-            } finally {
-                setLoading(false);
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Failed to fetch documents."
+                );
             }
-        };
 
+            setDocuments(
+                data.documents || []
+            );
+        } catch (err) {
+            console.error(
+                "Fetch documents error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                    "Failed to load documents."
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchDocuments();
     }, []);
 
-    const filteredDocuments = documents.filter((document) => {
-        const name = document.name || "";
-        const property = document.property || "";
-        const tenant = document.tenant || "";
-
-        const matchesSearch =
-            name.toLowerCase().includes(search.toLowerCase()) ||
-            property.toLowerCase().includes(search.toLowerCase()) ||
-            tenant.toLowerCase().includes(search.toLowerCase());
-
-        const matchesType =
-            typeFilter === "All" || document.type === typeFilter;
-
-        return matchesSearch && matchesType;
-    });
-
-    const rentalAgreements = documents.filter(
-        (document) => document.type === "Rental Agreement"
-    ).length;
-
-    const propertyDocuments = documents.filter(
-        (document) => document.type === "Property Document"
-    ).length;
-
-    const rentReceipts = documents.filter(
-        (document) => document.type === "Rent Receipt"
-    ).length;
-
-    const viewDocument = (document) => {
-        if (!document.url) {
-            alert("Document URL is not available.");
-            return;
-        }
-
-        window.open(document.url, "_blank");
+    // ============================================
+    // FIND DOCUMENT
+    // ============================================
+    const getDocument = (type) => {
+        return documents.find(
+            (doc) =>
+                doc.type === type
+        );
     };
 
-    const downloadDocument = (document) => {
-        if (!document.url) {
-            alert("Document URL is not available.");
+    // ============================================
+    // UPLOAD DOCUMENT
+    // ============================================
+    const handleUpload = async (
+        type,
+        event
+    ) => {
+        const file =
+            event.target.files?.[0];
+
+        event.target.value = "";
+
+        setMessage("");
+        setError("");
+
+        if (!file) {
             return;
         }
 
-        const link = document.createElement("a");
+        // PDF only
+        if (
+            file.type !==
+            "application/pdf"
+        ) {
+            setError(
+                "Only PDF files are allowed."
+            );
+            return;
+        }
 
-        link.href = document.url;
-        link.target = "_blank";
-        link.rel = "noopener noreferrer";
-        link.download = document.name || "receipt.pdf";
+        // Max 7 MB
+        if (
+            file.size >
+            7 * 1024 * 1024
+        ) {
+            setError(
+                "PDF size must be less than 7 MB."
+            );
+            return;
+        }
 
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        try {
+            setUploadingType(type);
+
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+            if (!token) {
+                throw new Error(
+                    "Please login first."
+                );
+            }
+
+            // =====================================
+            // CONVERT PDF TO BASE64
+            // =====================================
+            const fileData =
+                await new Promise(
+                    (
+                        resolve,
+                        reject
+                    ) => {
+                        const reader =
+                            new FileReader();
+
+                        reader.onload =
+                            () =>
+                                resolve(
+                                    reader.result
+                                );
+
+                        reader.onerror =
+                            () =>
+                                reject(
+                                    new Error(
+                                        "Failed to read PDF."
+                                    )
+                                );
+
+                        reader.readAsDataURL(
+                            file
+                        );
+                    }
+                );
+
+            // =====================================
+            // SEND PDF TO BACKEND
+            // =====================================
+            const response =
+                await fetch(
+                    `${API_URL}/documents/upload`,
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json",
+
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+
+                        body: JSON.stringify({
+                            type,
+                            fileName:
+                                file.name,
+                            fileType:
+                                file.type,
+                            fileData,
+                        }),
+                    }
+                );
+
+            const data =
+                await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Upload failed."
+                );
+            }
+
+            setMessage(
+                `${type} uploaded successfully.`
+            );
+
+            await fetchDocuments();
+        } catch (err) {
+            console.error(
+                "Upload error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                    "Failed to upload document."
+            );
+        } finally {
+            setUploadingType("");
+        }
+    };
+
+    // ============================================
+    // VIEW PDF
+    // ============================================
+    const handleView = async (doc) => {
+        try {
+            setViewingId(doc._id);
+
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+            if (!token) {
+                alert(
+                    "Please login first."
+                );
+                return;
+            }
+
+            const response =
+                await fetch(
+                    `${API_URL}/documents/view/${doc._id}`,
+                    {
+                        method: "GET",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+                    }
+                );
+
+            if (!response.ok) {
+                const data =
+                    await response.json();
+
+                throw new Error(
+                    data.message ||
+                        "Failed to open PDF."
+                );
+            }
+
+            const blob =
+                await response.blob();
+
+            const pdfBlob =
+                new Blob(
+                    [blob],
+                    {
+                        type: "application/pdf",
+                    }
+                );
+
+            const blobUrl =
+                window.URL.createObjectURL(
+                    pdfBlob
+                );
+
+            const newWindow =
+                window.open(
+                    "",
+                    "_blank"
+                );
+
+            if (!newWindow) {
+                window.URL.revokeObjectURL(
+                    blobUrl
+                );
+
+                throw new Error(
+                    "Please allow pop-ups in your browser to view the PDF."
+                );
+            }
+
+            newWindow.location.href =
+                blobUrl;
+
+            setTimeout(() => {
+                window.URL.revokeObjectURL(
+                    blobUrl
+                );
+            }, 60000);
+        } catch (err) {
+            console.error(
+                "View PDF error:",
+                err
+            );
+
+            alert(
+                err.message ||
+                    "Unable to open the PDF."
+            );
+        } finally {
+            setViewingId(null);
+        }
+    };
+
+    // ============================================
+    // DOWNLOAD PDF
+    // ============================================
+    const handleDownload = async (
+        doc
+    ) => {
+        try {
+            setDownloadingId(doc._id);
+
+            const token =
+                localStorage.getItem(
+                    "token"
+                );
+
+            if (!token) {
+                alert(
+                    "Please login first."
+                );
+                return;
+            }
+
+            const response =
+                await fetch(
+                    `${API_URL}/documents/download/${doc._id}`,
+                    {
+                        method: "GET",
+
+                        headers: {
+                            Authorization:
+                                `Bearer ${token}`,
+                        },
+                    }
+                );
+
+            if (!response.ok) {
+                const data =
+                    await response.json();
+
+                throw new Error(
+                    data.message ||
+                        "Failed to download PDF."
+                );
+            }
+
+            const blob =
+                await response.blob();
+
+            const pdfBlob =
+                new Blob(
+                    [blob],
+                    {
+                        type: "application/pdf",
+                    }
+                );
+
+            const blobUrl =
+                window.URL.createObjectURL(
+                    pdfBlob
+                );
+
+            const link =
+                window.document.createElement(
+                    "a"
+                );
+
+            link.href = blobUrl;
+
+            let fileName =
+                doc.name ||
+                "document";
+
+            fileName =
+                fileName.replace(
+                    /\.pdf$/i,
+                    ""
+                );
+
+            link.download =
+                `${fileName}.pdf`;
+
+            window.document.body.appendChild(
+                link
+            );
+
+            link.click();
+
+            window.document.body.removeChild(
+                link
+            );
+
+            window.URL.revokeObjectURL(
+                blobUrl
+            );
+        } catch (err) {
+            console.error(
+                "Download PDF error:",
+                err
+            );
+
+            alert(
+                err.message ||
+                    "Unable to download the PDF."
+            );
+        } finally {
+            setDownloadingId(null);
+        }
+    };
+
+    // ============================================
+    // LOGOUT
+    // ============================================
+    const handleLogout = () => {
+        localStorage.removeItem(
+            "token"
+        );
+
+        localStorage.removeItem(
+            "user"
+        );
+
+        navigate("/login");
     };
 
     return (
         <div className="min-h-screen bg-slate-50">
-
-            {/* Sidebar */}
+            {/* SIDEBAR */}
             <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
-
-                {/* Logo */}
                 <div className="flex h-20 items-center border-b border-slate-700 px-6">
                     <div>
                         <h1 className="text-xl font-bold">
@@ -140,105 +511,129 @@ const Documents = () => {
                     </div>
                 </div>
 
-                {/* Navigation */}
                 <nav className="px-4 py-6">
-
                     <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
                         Owner Menu
                     </p>
 
                     <div className="space-y-2">
-
                         <button
-                            onClick={() => navigate("/owner/dashboard")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/dashboard"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <BarChart3 />
-                            <span>Dashboard</span>
+                            Dashboard
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/properties")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/properties"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <House />
-                            <span>Properties</span>
+                            Properties
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/add-property")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/add-property"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <Plus />
-                            <span>Add Property</span>
+                            Add Property
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/tenants")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/tenants"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <Users />
-                            <span>Tenants</span>
+                            Tenants
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/payments")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/payments"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <CircleDollarSign />
-                            <span>Rent Payments</span>
+                            Rent Payments
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/maintenance")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/maintenance"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <Wrench />
-                            <span>Maintenance</span>
+                            Maintenance
                         </button>
 
                         <button
-                            onClick={() => navigate("/owner/notifications")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/owner/notifications"
+                                )
+                            }
+                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
                         >
                             <Bell />
-                            <span>Notifications</span>
+                            Notifications
                         </button>
 
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
                             <FileText />
-                            <span>Documents</span>
+                            Documents
                         </button>
-
                     </div>
                 </nav>
             </aside>
 
-            {/* Main Content */}
+            {/* MAIN */}
             <div className="ml-64">
-
-                {/* Navbar */}
+                {/* HEADER */}
                 <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
                     <div className="flex h-full items-center justify-between px-8">
-
                         <div>
                             <h2 className="text-xl font-semibold text-slate-800">
                                 Documents
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                Manage property and rental documents
+                                Manage common rental documents
                             </p>
                         </div>
 
                         <div className="flex items-center gap-4">
-
                             <button
-                                onClick={() => navigate("/owner/notifications")}
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
+                                onClick={() =>
+                                    navigate(
+                                        "/owner/notifications"
+                                    )
+                                }
+                                className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
                                 <Bell />
 
@@ -250,365 +645,224 @@ const Documents = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate("/login")}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
+                                onClick={
+                                    handleLogout
+                                }
+                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
                             >
                                 Logout
                             </button>
-
                         </div>
                     </div>
                 </header>
 
-                {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
-
-                    {/* Heading */}
                     <div className="mb-8">
-
                         <h1 className="text-2xl font-bold text-slate-800">
-                            Document Management
+                            Rental Documents
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            Access and manage your property and tenant documents.
+                            Upload these two common documents once for your tenants.
                         </p>
-
                     </div>
 
-                    {/* Statistics */}
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-4">
-
-                        {/* Total Documents */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Total Documents
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-slate-800">
-                                        {documents.length}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        All available documents
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    <FileText />
-                                </div>
-
-                            </div>
+                    {/* MESSAGES */}
+                    {message && (
+                        <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+                            {message}
                         </div>
+                    )}
 
-                        {/* Rental Agreements */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Rental Agreements
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-green-600">
-                                        {rentalAgreements}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Tenant agreements
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    <FilePenLine />
-                                </div>
-
-                            </div>
+                    {error && (
+                        <div className="mb-5 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {error}
                         </div>
+                    )}
 
-                        {/* Property Documents */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                    {/* DOCUMENT CARDS */}
+                    <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+                        {documentTypes.map(
+                            ({
+                                type,
+                                description,
+                                icon: Icon,
+                            }) => {
+                                const doc =
+                                    getDocument(
+                                        type
+                                    );
 
-                            <div className="flex items-center justify-between">
+                                const isUploading =
+                                    uploadingType ===
+                                    type;
 
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Property Documents
-                                    </p>
+                                const isViewing =
+                                    viewingId ===
+                                    doc?._id;
 
-                                    <h2 className="mt-2 text-3xl font-bold text-purple-600">
-                                        {propertyDocuments}
-                                    </h2>
+                                const isDownloading =
+                                    downloadingId ===
+                                    doc?._id;
 
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Property related files
-                                    </p>
-                                </div>
+                                return (
+                                    <div
+                                        key={type}
+                                        className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
+                                    >
+                                        {/* TITLE */}
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                                <Icon
+                                                    size={
+                                                        27
+                                                    }
+                                                />
+                                            </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-purple-100 text-2xl">
-                                    <House />
-                                </div>
+                                            <div>
+                                                <h2 className="text-lg font-semibold text-slate-800">
+                                                    {
+                                                        type
+                                                    }
+                                                </h2>
 
-                            </div>
-                        </div>
+                                                <p className="mt-1 text-sm text-slate-500">
+                                                    {
+                                                        description
+                                                    }
+                                                </p>
+                                            </div>
+                                        </div>
 
-                        {/* Rent Receipts */}
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                                        {/* STATUS */}
+                                        <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                                            {doc ? (
+                                                <>
+                                                    <div className="flex items-center justify-between">
+                                                        <div>
+                                                            <p className="text-sm font-medium text-slate-700">
+                                                                Document uploaded
+                                                            </p>
 
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Rent Receipts
-                                    </p>
-
-                                    <h2 className="mt-2 text-3xl font-bold text-blue-600">
-                                        {rentReceipts}
-                                    </h2>
-
-                                    <p className="mt-1 text-xs text-slate-500">
-                                        Payment receipts
-                                    </p>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    <CircleDollarSign />
-                                </div>
-
-                            </div>
-                        </div>
-
-                    </div>
-
-                    {/* Search + Filter */}
-                    <div className="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row">
-
-                        <input
-                            type="text"
-                            placeholder="Search document, property or tenant..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="flex-1 rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
-
-                        <select
-                            value={typeFilter}
-                            onChange={(e) => setTypeFilter(e.target.value)}
-                            className="rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500"
-                        >
-                            <option value="All">
-                                All Documents
-                            </option>
-
-                            <option value="Rent Receipt">
-                                Rent Receipt
-                            </option>
-
-                            <option value="Rental Agreement">
-                                Rental Agreement
-                            </option>
-
-                            <option value="Property Document">
-                                Property Document
-                            </option>
-                        </select>
-
-                    </div>
-
-                    {/* Documents Table */}
-                    <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
-                        <div className="border-b border-slate-200 px-6 py-5">
-
-                            <h2 className="font-semibold text-slate-800">
-                                Document Library
-                            </h2>
-
-                            <p className="mt-1 text-xs text-slate-500">
-                                Your property and tenant related documents.
-                            </p>
-
-                        </div>
-
-                        <div className="overflow-x-auto">
-
-                            <table className="w-full min-w-[1000px] text-left">
-
-                                <thead>
-                                    <tr className="border-b border-slate-200 bg-slate-50">
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Document
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Type
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Property
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Tenant
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Date
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Size
-                                        </th>
-
-                                        <th className="px-6 py-4 text-xs font-semibold uppercase text-slate-500">
-                                            Actions
-                                        </th>
-
-                                    </tr>
-                                </thead>
-
-                                <tbody>
-
-                                    {loading ? (
-                                        <tr>
-                                            <td
-                                                colSpan="7"
-                                                className="px-6 py-12 text-center text-sm text-slate-500"
-                                            >
-                                                Loading documents...
-                                            </td>
-                                        </tr>
-                                    ) : error ? (
-                                        <tr>
-                                            <td
-                                                colSpan="7"
-                                                className="px-6 py-12 text-center text-sm text-red-500"
-                                            >
-                                                {error}
-                                            </td>
-                                        </tr>
-                                    ) : (
-                                        filteredDocuments.map((document) => (
-                                            <tr
-                                                key={document._id || document.id}
-                                                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                                            >
-
-                                                {/* Document */}
-                                                <td className="px-6 py-5">
-
-                                                    <div className="flex items-center gap-3">
-
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 text-lg">
-                                                            <FileText />
+                                                            <p className="mt-1 text-xs text-slate-500">
+                                                                {
+                                                                    doc.size
+                                                                }{" "}
+                                                                •{" "}
+                                                                {
+                                                                    doc.date
+                                                                }
+                                                            </p>
                                                         </div>
 
-                                                        <span className="text-sm font-medium text-slate-700">
-                                                            {document.name}
+                                                        <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
+                                                            Uploaded
                                                         </span>
-
                                                     </div>
 
-                                                </td>
-
-                                                {/* Type */}
-                                                <td className="px-6 py-5">
-
-                                                    <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                                                        {document.type}
-                                                    </span>
-
-                                                </td>
-
-                                                {/* Property */}
-                                                <td className="px-6 py-5 text-sm text-slate-600">
-                                                    {document.property || "N/A"}
-                                                </td>
-
-                                                {/* Tenant */}
-                                                <td className="px-6 py-5 text-sm text-slate-600">
-                                                    {document.tenant || "N/A"}
-                                                </td>
-
-                                                {/* Date */}
-                                                <td className="px-6 py-5 text-sm text-slate-600">
-                                                    {document.date || "N/A"}
-                                                </td>
-
-                                                {/* Size */}
-                                                <td className="px-6 py-5 text-sm text-slate-600">
-                                                    {document.size || "N/A"}
-                                                </td>
-
-                                                {/* Actions */}
-                                                <td className="px-6 py-5">
-
-                                                    <div className="flex items-center gap-2">
-
+                                                    {/* VIEW / DOWNLOAD */}
+                                                    <div className="mt-4 flex gap-2">
                                                         <button
+                                                            type="button"
                                                             onClick={() =>
-                                                                viewDocument(document)
-                                                            }
-                                                            className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
-                                                        >
-                                                            View
-                                                        </button>
-
-                                                        <button
-                                                            onClick={() =>
-                                                                downloadDocument(
-                                                                    document
+                                                                handleView(
+                                                                    doc
                                                                 )
                                                             }
-                                                            className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-medium text-white transition hover:bg-blue-700"
+                                                            disabled={
+                                                                isViewing
+                                                            }
+                                                            className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 disabled:opacity-60"
                                                         >
-                                                            Download
+                                                            <Eye
+                                                                size={
+                                                                    16
+                                                                }
+                                                            />
+
+                                                            {isViewing
+                                                                ? "Opening..."
+                                                                : "View"}
                                                         </button>
 
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                handleDownload(
+                                                                    doc
+                                                                )
+                                                            }
+                                                            disabled={
+                                                                isDownloading
+                                                            }
+                                                            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60"
+                                                        >
+                                                            <Download
+                                                                size={
+                                                                    16
+                                                                }
+                                                            />
+
+                                                            {isDownloading
+                                                                ? "Downloading..."
+                                                                : "Download"}
+                                                        </button>
                                                     </div>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <p className="text-sm font-medium text-slate-700">
+                                                        No document uploaded
+                                                    </p>
 
-                                                </td>
+                                                    <p className="mt-1 text-xs text-slate-500">
+                                                        Upload a PDF to make it available to your linked tenants.
+                                                    </p>
+                                                </>
+                                            )}
+                                        </div>
 
-                                            </tr>
-                                        ))
-                                    )}
+                                        {/* UPLOAD */}
+                                        <label className="mt-5 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700">
+                                            <Upload
+                                                size={
+                                                    18
+                                                }
+                                            />
 
-                                </tbody>
+                                            {isUploading
+                                                ? "Uploading..."
+                                                : doc
+                                                ? "Replace Document"
+                                                : "Upload Document"}
 
-                            </table>
+                                            <input
+                                                type="file"
+                                                accept=".pdf,application/pdf"
+                                                disabled={
+                                                    isUploading
+                                                }
+                                                className="hidden"
+                                                onChange={(
+                                                    event
+                                                ) =>
+                                                    handleUpload(
+                                                        type,
+                                                        event
+                                                    )
+                                                }
+                                            />
+                                        </label>
 
-                        </div>
-
-                        {/* Empty State */}
-                        {!loading &&
-                            !error &&
-                            filteredDocuments.length === 0 && (
-                                <div className="p-12 text-center">
-
-                                    <div className="flex justify-center text-slate-400">
-                                        <Search size={48} />
+                                        <p className="mt-2 text-center text-xs text-slate-400">
+                                            PDF only • Maximum 7 MB
+                                        </p>
                                     </div>
-
-                                    <h3 className="mt-4 font-semibold text-slate-800">
-                                        No documents found
-                                    </h3>
-
-                                    <p className="mt-1 text-sm text-slate-500">
-                                        Receipts will appear here after tenants
-                                        make rent payments.
-                                    </p>
-
-                                </div>
-                            )}
-
+                                );
+                            }
+                        )}
                     </div>
-
                 </main>
             </div>
         </div>

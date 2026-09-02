@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiGrid,
@@ -14,6 +15,441 @@ import {
 const TenantDashboard = () => {
     const navigate = useNavigate();
 
+    const [property, setProperty] = useState(null);
+    const [payments, setPayments] = useState([]);
+    const [notifications, setNotifications] = useState([]);
+    const [maintenanceRequests, setMaintenanceRequests] = useState([]);
+
+    const [error, setError] = useState("");
+
+    // =====================================================
+    // FETCH TENANT DASHBOARD DATA
+    // =====================================================
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            try {
+                setError("");
+
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    navigate("/login");
+                    return;
+                }
+
+                const headers = {
+                    Authorization: `Bearer ${token}`,
+                };
+
+                // =================================================
+                // 1. GET TENANT PROPERTY
+                // =================================================
+                try {
+                    const propertyResponse = await fetch(
+                        "http://localhost:5000/api/tenants/my-property",
+                        {
+                            method: "GET",
+                            headers,
+                        }
+                    );
+
+                    const propertyData =
+                        await propertyResponse.json();
+
+                    if (
+                        propertyResponse.status === 401 ||
+                        propertyResponse.status === 403
+                    ) {
+                        throw new Error(
+                            propertyData.message ||
+                                "You are not authorized to access this page."
+                        );
+                    }
+
+                    if (propertyResponse.ok) {
+                        setProperty(
+                            propertyData.property || null
+                        );
+                    } else {
+                        setProperty(null);
+                    }
+                } catch (propertyError) {
+                    console.error(
+                        "Property fetch error:",
+                        propertyError
+                    );
+
+                    setProperty(null);
+
+                    if (
+                        propertyError.message ===
+                        "Access denied"
+                    ) {
+                        setError(
+                            "You are not authorized to access tenant property data."
+                        );
+                    }
+                }
+
+                // =================================================
+                // 2. GET TENANT PAYMENTS
+                // =================================================
+                try {
+                    const paymentsResponse = await fetch(
+                        "http://localhost:5000/api/payments/tenant",
+                        {
+                            method: "GET",
+                            headers,
+                        }
+                    );
+
+                    const paymentsData =
+                        await paymentsResponse.json();
+
+                    if (paymentsResponse.ok) {
+                        setPayments(
+                            paymentsData.payments || []
+                        );
+                    } else {
+                        console.error(
+                            "Payments error:",
+                            paymentsData.message
+                        );
+
+                        setPayments([]);
+                    }
+                } catch (paymentsError) {
+                    console.error(
+                        "Payments fetch error:",
+                        paymentsError
+                    );
+
+                    setPayments([]);
+                }
+
+                // =================================================
+                // 3. GET TENANT NOTIFICATIONS
+                // =================================================
+                try {
+                    const notificationsResponse =
+                        await fetch(
+                            "http://localhost:5000/api/notifications",
+                            {
+                                method: "GET",
+                                headers,
+                            }
+                        );
+
+                    const notificationsData =
+                        await notificationsResponse.json();
+
+                    if (notificationsResponse.ok) {
+                        setNotifications(
+                            notificationsData.notifications ||
+                                []
+                        );
+                    } else {
+                        console.error(
+                            "Notifications error:",
+                            notificationsData.message
+                        );
+
+                        setNotifications([]);
+                    }
+                } catch (notificationsError) {
+                    console.error(
+                        "Notifications fetch error:",
+                        notificationsError
+                    );
+
+                    setNotifications([]);
+                }
+
+                // =================================================
+                // 4. GET TENANT MAINTENANCE
+                // =================================================
+                try {
+                    const maintenanceResponse =
+                        await fetch(
+                            "http://localhost:5000/api/maintenance/tenant",
+                            {
+                                method: "GET",
+                                headers,
+                            }
+                        );
+
+                    const maintenanceData =
+                        await maintenanceResponse.json();
+
+                    if (maintenanceResponse.ok) {
+                        setMaintenanceRequests(
+                            maintenanceData.requests || []
+                        );
+                    } else {
+                        console.error(
+                            "Maintenance error:",
+                            maintenanceData.message
+                        );
+
+                        setMaintenanceRequests([]);
+                    }
+                } catch (maintenanceError) {
+                    console.error(
+                        "Maintenance fetch error:",
+                        maintenanceError
+                    );
+
+                    setMaintenanceRequests([]);
+                }
+            } catch (error) {
+                console.error(
+                    "Tenant dashboard error:",
+                    error
+                );
+
+                setError(
+                    error.message ||
+                        "Something went wrong while loading dashboard data."
+                );
+            }
+        };
+
+        fetchDashboardData();
+    }, [navigate]);
+
+    // =====================================================
+    // CURRENT DATE
+    // =====================================================
+    const today = new Date();
+
+    const currentMonth = today.getMonth();
+    const currentYear = today.getFullYear();
+
+    // =====================================================
+    // CURRENT MONTH PAYMENTS
+    // =====================================================
+    const currentMonthPayments = payments.filter(
+        (payment) => {
+            if (!payment.paymentDate) {
+                return false;
+            }
+
+            const paymentDate = new Date(
+                payment.paymentDate
+            );
+
+            return (
+                paymentDate.getMonth() ===
+                    currentMonth &&
+                paymentDate.getFullYear() ===
+                    currentYear
+            );
+        }
+    );
+
+    // =====================================================
+    // CURRENT MONTH PAYMENT STATUS
+    // =====================================================
+    const approvedCurrentMonthPayment =
+        currentMonthPayments.find(
+            (payment) =>
+                payment.status === "Approved"
+        );
+
+    const pendingCurrentMonthPayment =
+        currentMonthPayments.find(
+            (payment) =>
+                payment.status === "Pending"
+        );
+
+    const rejectedCurrentMonthPayment =
+        currentMonthPayments.find(
+            (payment) =>
+                payment.status === "Rejected"
+        );
+
+    let rentStatus = "Payment Due";
+
+    if (approvedCurrentMonthPayment) {
+        rentStatus = "Paid";
+    } else if (pendingCurrentMonthPayment) {
+        rentStatus = "Pending";
+    } else if (rejectedCurrentMonthPayment) {
+        rentStatus = "Rejected";
+    }
+
+    // =====================================================
+    // RENT STATUS COLOR
+    // =====================================================
+    const getRentStatusColor = () => {
+        if (rentStatus === "Paid") {
+            return "text-green-600";
+        }
+
+        if (rentStatus === "Pending") {
+            return "text-yellow-600";
+        }
+
+        if (rentStatus === "Rejected") {
+            return "text-red-600";
+        }
+
+        return "text-orange-600";
+    };
+
+    // =====================================================
+    // RENT STATUS ICON BACKGROUND
+    // =====================================================
+    const getRentStatusIconBackground = () => {
+        if (rentStatus === "Paid") {
+            return "bg-green-100";
+        }
+
+        if (rentStatus === "Pending") {
+            return "bg-yellow-100";
+        }
+
+        if (rentStatus === "Rejected") {
+            return "bg-red-100";
+        }
+
+        return "bg-orange-100";
+    };
+
+    // =====================================================
+    // NEXT DUE DATE
+    // =====================================================
+    const calculateNextDueDate = () => {
+        if (!property?.dueDate) {
+            return null;
+        }
+
+        const originalDueDate = new Date(
+            property.dueDate
+        );
+
+        if (
+            Number.isNaN(
+                originalDueDate.getTime()
+            )
+        ) {
+            return null;
+        }
+
+        const dueDay =
+            originalDueDate.getDate();
+
+        let nextDueDate = new Date(
+            currentYear,
+            currentMonth,
+            dueDay
+        );
+
+        if (nextDueDate < today) {
+            nextDueDate = new Date(
+                currentYear,
+                currentMonth + 1,
+                dueDay
+            );
+        }
+
+        return nextDueDate;
+    };
+
+    const nextDueDate =
+        calculateNextDueDate();
+
+    // =====================================================
+    // FORMAT DATE
+    // =====================================================
+    const formatDate = (date) => {
+        if (!date) {
+            return "Not set";
+        }
+
+        const formattedDate =
+            new Date(date);
+
+        if (
+            Number.isNaN(
+                formattedDate.getTime()
+            )
+        ) {
+            return "Not set";
+        }
+
+        return formattedDate.toLocaleDateString(
+            "en-GB",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+            }
+        );
+    };
+
+    // =====================================================
+    // PROPERTY DATA
+    // =====================================================
+    const monthlyRent =
+        property?.rent || 0;
+
+    const propertyName =
+        property?.name ||
+        "No Property Linked";
+
+    const propertyAddress = property
+        ? `${property.address || ""}${
+              property.city
+                  ? `, ${property.city}`
+                  : ""
+          }`
+        : "No property linked";
+
+    const propertyStatus =
+        property?.status === "Occupied"
+            ? "Active Rental"
+            : property?.status ||
+              "Not linked";
+
+    const bedrooms = Number(
+        property?.bedrooms || 0
+    );
+
+    // =====================================================
+    // UNREAD NOTIFICATIONS
+    // =====================================================
+    const unreadNotifications =
+        notifications.filter(
+            (notification) =>
+                notification.read === false
+        ).length;
+
+    // =====================================================
+    // ACTIVE MAINTENANCE REQUESTS
+    // =====================================================
+    const activeMaintenanceRequests =
+        maintenanceRequests.filter(
+            (request) =>
+                request.status ===
+                    "Pending" ||
+                request.status ===
+                    "In Progress"
+        ).length;
+
+    // =====================================================
+    // LOGOUT
+    // =====================================================
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        navigate("/login");
+    };
+
+    // =====================================================
+    // MAIN UI
+    // =====================================================
     return (
         <div className="min-h-screen bg-slate-50">
 
@@ -47,61 +483,110 @@ const TenantDashboard = () => {
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
                             <FiGrid />
-                            <span>Dashboard</span>
+                            <span>
+                                Dashboard
+                            </span>
                         </button>
 
                         {/* Join Property */}
                         <button
-                            onClick={() => navigate("/tenant/join-property")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/join-property"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiHome />
-                            <span>Join Property</span>
+                            <span>
+                                Join Property
+                            </span>
                         </button>
 
                         {/* My Property */}
                         <button
-                            onClick={() => navigate("/tenant/my-property")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/my-property"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiHome />
-                            <span>My Property</span>
+                            <span>
+                                My Property
+                            </span>
                         </button>
 
                         {/* Rent Payment */}
                         <button
-                            onClick={() => navigate("/tenant/rent-payment")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/rent-payment"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiDollarSign />
-                            <span>Rent Payment</span>
+                            <span>
+                                Rent Payment
+                            </span>
                         </button>
 
                         {/* Maintenance */}
                         <button
-                            onClick={() => navigate("/tenant/maintenance")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/maintenance"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiTool />
-                            <span>Maintenance</span>
+                            <span>
+                                Maintenance
+                            </span>
                         </button>
 
                         {/* Notifications */}
                         <button
-                            onClick={() => navigate("/tenant/notifications")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/notifications"
+                                )
+                            }
+                            className="relative flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiBell />
-                            <span>Notifications</span>
+
+                            <span>
+                                Notifications
+                            </span>
+
+                            {unreadNotifications >
+                                0 && (
+                                <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
+                                    {
+                                        unreadNotifications
+                                    }
+                                </span>
+                            )}
                         </button>
 
                         {/* Documents */}
                         <button
-                            onClick={() => navigate("/tenant/documents")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/documents"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiFileText />
-                            <span>Documents</span>
+
+                            <span>
+                                Documents
+                            </span>
                         </button>
 
                     </div>
@@ -130,12 +615,23 @@ const TenantDashboard = () => {
 
                             {/* Notification */}
                             <button
-                                onClick={() => navigate("/tenant/notifications")}
+                                onClick={() =>
+                                    navigate(
+                                        "/tenant/notifications"
+                                    )
+                                }
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
                                 <FiBell />
 
-                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
+                                {unreadNotifications >
+                                    0 && (
+                                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+                                        {
+                                            unreadNotifications
+                                        }
+                                    </span>
+                                )}
                             </button>
 
                             {/* Profile */}
@@ -145,7 +641,9 @@ const TenantDashboard = () => {
 
                             {/* Logout */}
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={
+                                    handleLogout
+                                }
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -159,11 +657,21 @@ const TenantDashboard = () => {
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
 
+                    {/* Error */}
+                    {error && (
+                        <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-5">
+                            <p className="text-sm font-medium text-red-700">
+                                {error}
+                            </p>
+                        </div>
+                    )}
+
                     {/* Welcome Section */}
                     <div className="mb-8">
 
                         <h1 className="text-2xl font-bold text-slate-800">
-                            Welcome, Tenant <FiSmile className="inline" />
+                            Welcome, Tenant{" "}
+                            <FiSmile className="inline" />
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
@@ -186,7 +694,10 @@ const TenantDashboard = () => {
                                     </p>
 
                                     <h2 className="mt-2 text-2xl font-bold text-blue-600">
-                                        Rs. 35,000
+                                        Rs.{" "}
+                                        {Number(
+                                            monthlyRent
+                                        ).toLocaleString()}
                                     </h2>
 
                                     <p className="mt-1 text-xs text-slate-500">
@@ -212,8 +723,10 @@ const TenantDashboard = () => {
                                         Rent Status
                                     </p>
 
-                                    <h2 className="mt-2 text-2xl font-bold text-green-600">
-                                        Paid
+                                    <h2
+                                        className={`mt-2 text-2xl font-bold ${getRentStatusColor()}`}
+                                    >
+                                        {rentStatus}
                                     </h2>
 
                                     <p className="mt-1 text-xs text-slate-500">
@@ -221,7 +734,9 @@ const TenantDashboard = () => {
                                     </p>
                                 </div>
 
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
+                                <div
+                                    className={`flex h-12 w-12 items-center justify-center rounded-xl text-2xl ${getRentStatusIconBackground()}`}
+                                >
                                     <FiCheckCircle />
                                 </div>
 
@@ -240,7 +755,9 @@ const TenantDashboard = () => {
                                     </p>
 
                                     <h2 className="mt-2 text-2xl font-bold text-orange-600">
-                                        01 Sep 2026
+                                        {formatDate(
+                                            nextDueDate
+                                        )}
                                     </h2>
 
                                     <p className="mt-1 text-xs text-slate-500">
@@ -267,7 +784,7 @@ const TenantDashboard = () => {
                                     </p>
 
                                     <h2 className="mt-2 text-lg font-bold text-slate-800">
-                                        Green Villa
+                                        {propertyName}
                                     </h2>
 
                                     <p className="mt-1 text-xs text-slate-500">
@@ -304,7 +821,11 @@ const TenantDashboard = () => {
                                 </div>
 
                                 <button
-                                    onClick={() => navigate("/tenant/my-property")}
+                                    onClick={() =>
+                                        navigate(
+                                            "/tenant/my-property"
+                                        )
+                                    }
                                     className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700"
                                 >
                                     View Property
@@ -323,21 +844,25 @@ const TenantDashboard = () => {
                                     <div>
 
                                         <h3 className="font-semibold text-slate-800">
-                                            Green Villa
+                                            {propertyName}
                                         </h3>
 
                                         <p className="mt-1 text-sm text-slate-500">
-                                            Street 12, Model Town, Lahore
+                                            {propertyAddress}
                                         </p>
 
                                         <div className="mt-3 flex flex-wrap gap-2">
 
                                             <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                                                Active Rental
+                                                {propertyStatus}
                                             </span>
 
                                             <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-700">
-                                                2 Bedrooms
+                                                {bedrooms}{" "}
+                                                {bedrooms ===
+                                                1
+                                                    ? "Bedroom"
+                                                    : "Bedrooms"}
                                             </span>
 
                                         </div>
@@ -364,35 +889,96 @@ const TenantDashboard = () => {
                             <div className="mt-5 space-y-3">
 
                                 <button
-                                    onClick={() => navigate("/tenant/rent-payment")}
-                                    className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                    onClick={() =>
+                                        navigate(
+                                            "/tenant/rent-payment"
+                                        )
+                                    }
+                                    className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    <FiDollarSign />
-                                    <span>Pay Rent</span>
+                                    <div className="flex items-center gap-3">
+                                        <FiDollarSign />
+                                        <span>
+                                            Pay Rent
+                                        </span>
+                                    </div>
+
+                                    {rentStatus ===
+                                        "Pending" && (
+                                        <span className="text-xs text-yellow-600">
+                                            Pending
+                                        </span>
+                                    )}
+
                                 </button>
 
                                 <button
-                                    onClick={() => navigate("/tenant/maintenance")}
-                                    className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                    onClick={() =>
+                                        navigate(
+                                            "/tenant/maintenance"
+                                        )
+                                    }
+                                    className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    <FiTool />
-                                    <span>Request Maintenance</span>
+                                    <div className="flex items-center gap-3">
+                                        <FiTool />
+
+                                        <span>
+                                            Request Maintenance
+                                        </span>
+                                    </div>
+
+                                    {activeMaintenanceRequests >
+                                        0 && (
+                                        <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">
+                                            {
+                                                activeMaintenanceRequests
+                                            }
+                                        </span>
+                                    )}
+
                                 </button>
 
                                 <button
-                                    onClick={() => navigate("/tenant/documents")}
+                                    onClick={() =>
+                                        navigate(
+                                            "/tenant/documents"
+                                        )
+                                    }
                                     className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
                                     <FiFileText />
-                                    <span>View Documents</span>
+
+                                    <span>
+                                        View Documents
+                                    </span>
                                 </button>
 
                                 <button
-                                    onClick={() => navigate("/tenant/notifications")}
-                                    className="flex w-full items-center gap-3 rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                                    onClick={() =>
+                                        navigate(
+                                            "/tenant/notifications"
+                                        )
+                                    }
+                                    className="flex w-full items-center justify-between rounded-lg border border-slate-200 px-4 py-3 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50"
                                 >
-                                    <FiBell />
-                                    <span>View Notifications</span>
+                                    <div className="flex items-center gap-3">
+                                        <FiBell />
+
+                                        <span>
+                                            View Notifications
+                                        </span>
+                                    </div>
+
+                                    {unreadNotifications >
+                                        0 && (
+                                        <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                                            {
+                                                unreadNotifications
+                                            }
+                                        </span>
+                                    )}
+
                                 </button>
 
                             </div>
@@ -419,8 +1005,13 @@ const TenantDashboard = () => {
                                     </h3>
 
                                     <p className="mt-1 text-sm text-slate-600">
-                                        Your next rent payment of Rs. 35,000 is due on
-                                        01 Sep 2026.
+                                        {property
+                                            ? `Your next rent payment of Rs. ${Number(
+                                                  monthlyRent
+                                              ).toLocaleString()} is due on ${formatDate(
+                                                  nextDueDate
+                                              )}.`
+                                            : "You are not currently linked to a rental property."}
                                     </p>
 
                                     <p className="mt-1 text-xs text-slate-500">
@@ -432,8 +1023,13 @@ const TenantDashboard = () => {
                             </div>
 
                             <button
-                                onClick={() => navigate("/tenant/rent-payment")}
-                                className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700"
+                                onClick={() =>
+                                    navigate(
+                                        "/tenant/rent-payment"
+                                    )
+                                }
+                                disabled={!property}
+                                className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                             >
                                 Pay Rent
                             </button>

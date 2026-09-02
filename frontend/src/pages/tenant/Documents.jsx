@@ -1,4 +1,5 @@
-import { useState } from "react";
+
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiBarChart2,
@@ -7,87 +8,283 @@ import {
     FiTool,
     FiBell,
     FiFileText,
-    FiFile,
     FiEye,
     FiDownload,
-    FiSearch,
 } from "react-icons/fi";
+
+const API_URL = "http://localhost:5000/api";
 
 const Documents = () => {
     const navigate = useNavigate();
 
-    const [search, setSearch] = useState("");
+    const [documents, setDocuments] = useState([]);
+    const [property, setProperty] = useState(null);
 
-    const documents = [
-        {
-            id: 1,
-            name: "Rental Agreement",
-            type: "Agreement",
-            date: "01 Aug 2026",
-            size: "2.4 MB",
-            status: "Active",
-        },
-        {
-            id: 2,
-            name: "Rent Receipt - August 2026",
-            type: "Receipt",
-            date: "01 Aug 2026",
-            size: "850 KB",
-            status: "Available",
-        },
-        {
-            id: 3,
-            name: "Property Rules & Regulations",
-            type: "Property",
-            date: "01 Aug 2026",
-            size: "1.2 MB",
-            status: "Available",
-        },
-        {
-            id: 4,
-            name: "Rent Receipt - July 2026",
-            type: "Receipt",
-            date: "01 Jul 2026",
-            size: "820 KB",
-            status: "Available",
-        },
-    ];
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState("");
 
-    const filteredDocuments = documents.filter((document) =>
-        document.name.toLowerCase().includes(search.toLowerCase())
-    );
+    const [viewingId, setViewingId] = useState(null);
+    const [downloadingId, setDownloadingId] = useState(null);
 
-    const getIcon = (type) => {
-        if (type === "Agreement") return <FiFile />;
-        if (type === "Receipt") return <FiFileText />;
-        if (type === "Property") return <FiHome />;
+    // ============================================
+    // FETCH TENANT DOCUMENTS
+    // ============================================
+    const fetchDocuments = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-        return <FiFileText />;
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                setError("Please login first.");
+                setLoading(false);
+                return;
+            }
+
+            const response = await fetch(
+                `${API_URL}/documents/tenant`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Failed to fetch documents."
+                );
+            }
+
+            setDocuments(data.documents || []);
+            setProperty(data.property || null);
+        } catch (err) {
+            console.error(
+                "Tenant documents error:",
+                err
+            );
+
+            setError(
+                err.message ||
+                    "Failed to load documents."
+            );
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const getIconBackground = (type) => {
-        if (type === "Agreement") return "bg-blue-100";
-        if (type === "Receipt") return "bg-green-100";
-        if (type === "Property") return "bg-purple-100";
+    useEffect(() => {
+        fetchDocuments();
+    }, []);
 
-        return "bg-slate-100";
+    // ============================================
+    // VIEW PDF
+    // ============================================
+    const handleView = async (doc) => {
+        if (!doc?._id) {
+            alert("Document is not available.");
+            return;
+        }
+
+        try {
+            setViewingId(doc._id);
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                alert("Please login first.");
+                return;
+            }
+
+            const response = await fetch(
+                `${API_URL}/documents/view/${doc._id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                let message =
+                    "Failed to open PDF.";
+
+                try {
+                    const data = await response.json();
+
+                    message =
+                        data.message || message;
+                } catch {
+                    // Keep default message
+                }
+
+                throw new Error(message);
+            }
+
+            const blob = await response.blob();
+
+            const pdfBlob = new Blob([blob], {
+                type: "application/pdf",
+            });
+
+            const blobUrl =
+                window.URL.createObjectURL(pdfBlob);
+
+            // Open blank tab first
+            // so popup blocker doesn't stop it
+            const newWindow = window.open(
+                "",
+                "_blank"
+            );
+
+            if (!newWindow) {
+                window.URL.revokeObjectURL(blobUrl);
+
+                throw new Error(
+                    "Please allow pop-ups in your browser to view the PDF."
+                );
+            }
+
+            newWindow.location.href = blobUrl;
+
+            // Release object URL after browser has opened it
+            setTimeout(() => {
+                window.URL.revokeObjectURL(blobUrl);
+            }, 60000);
+        } catch (err) {
+            console.error(
+                "View PDF error:",
+                err
+            );
+
+            alert(
+                err.message ||
+                    "Unable to open the PDF."
+            );
+        } finally {
+            setViewingId(null);
+        }
     };
 
-    const handleView = (document) => {
-        alert(`Opening: ${document.name}`);
+    // ============================================
+    // DOWNLOAD PDF
+    // ============================================
+    const handleDownload = async (doc) => {
+        if (!doc?._id) {
+            alert("Document is not available.");
+            return;
+        }
+
+        try {
+            setDownloadingId(doc._id);
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                alert("Please login first.");
+                return;
+            }
+
+            const response = await fetch(
+                `${API_URL}/documents/download/${doc._id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            if (!response.ok) {
+                let message =
+                    "Failed to download PDF.";
+
+                try {
+                    const data = await response.json();
+
+                    message =
+                        data.message || message;
+                } catch {
+                    // Keep default message
+                }
+
+                throw new Error(message);
+            }
+
+            const blob = await response.blob();
+
+            const pdfBlob = new Blob([blob], {
+                type: "application/pdf",
+            });
+
+            const blobUrl =
+                window.URL.createObjectURL(pdfBlob);
+
+            const link =
+                window.document.createElement("a");
+
+            link.href = blobUrl;
+
+            let fileName =
+                doc.name || "document";
+
+            // Remove old .pdf extension
+            fileName = fileName.replace(
+                /\.pdf$/i,
+                ""
+            );
+
+            link.download = `${fileName}.pdf`;
+
+            link.style.display = "none";
+
+            window.document.body.appendChild(link);
+
+            link.click();
+
+            window.document.body.removeChild(link);
+
+            // Release URL
+            setTimeout(() => {
+                window.URL.revokeObjectURL(blobUrl);
+            }, 1000);
+        } catch (err) {
+            console.error(
+                "Download PDF error:",
+                err
+            );
+
+            alert(
+                err.message ||
+                    "Unable to download the PDF."
+            );
+        } finally {
+            setDownloadingId(null);
+        }
     };
 
-    const handleDownload = (document) => {
-        alert(`Downloading: ${document.name}`);
+    // ============================================
+    // LOGOUT
+    // ============================================
+    const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        navigate("/login");
     };
 
     return (
         <div className="min-h-screen bg-slate-50">
-
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white shadow-xl">
-
-                {/* Logo */}
+            {/* =========================================
+                SIDEBAR
+            ========================================= */}
+            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
                 <div className="flex h-20 items-center border-b border-slate-700 px-6">
                     <div>
                         <h1 className="text-xl font-bold">
@@ -100,350 +297,334 @@ const Documents = () => {
                     </div>
                 </div>
 
-                {/* Navigation */}
                 <nav className="px-4 py-6">
-
                     <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
                         Tenant Menu
                     </p>
 
                     <div className="space-y-2">
-
+                        {/* Dashboard */}
                         <button
-                            onClick={() => navigate("/tenant/dashboard")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/dashboard"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiBarChart2 />
                             <span>Dashboard</span>
                         </button>
 
+                        {/* Join Property */}
                         <button
-                            onClick={() => navigate("/tenant/join-property")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/join-property"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiHome />
                             <span>Join Property</span>
                         </button>
 
+                        {/* My Property */}
                         <button
-                            onClick={() => navigate("/tenant/my-property")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/my-property"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiHome />
                             <span>My Property</span>
                         </button>
 
+                        {/* Rent Payment */}
                         <button
-                            onClick={() => navigate("/tenant/rent-payment")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/payments"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiDollarSign />
                             <span>Rent Payment</span>
                         </button>
 
+                        {/* Maintenance */}
                         <button
-                            onClick={() => navigate("/tenant/maintenance")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/maintenance"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiTool />
                             <span>Maintenance</span>
                         </button>
 
+                        {/* Notifications */}
                         <button
-                            onClick={() => navigate("/tenant/notifications")}
+                            onClick={() =>
+                                navigate(
+                                    "/tenant/notifications"
+                                )
+                            }
                             className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
                         >
                             <FiBell />
                             <span>Notifications</span>
                         </button>
 
-                        {/* Active Documents */}
+                        {/* Documents */}
                         <button
                             className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
                         >
                             <FiFileText />
                             <span>Documents</span>
                         </button>
-
                     </div>
                 </nav>
             </aside>
 
-            {/* Main Content */}
+            {/* =========================================
+                MAIN CONTENT
+            ========================================= */}
             <div className="ml-64">
-
-                {/* Navbar */}
+                {/* HEADER */}
                 <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
                     <div className="flex h-full items-center justify-between px-8">
-
                         <div>
                             <h2 className="text-xl font-semibold text-slate-800">
                                 Documents
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                Access your rental documents and receipts
+                                Your rental documents
                             </p>
                         </div>
 
                         <div className="flex items-center gap-4">
-
+                            {/* Notifications */}
                             <button
-                                onClick={() => navigate("/tenant/notifications")}
+                                onClick={() =>
+                                    navigate(
+                                        "/tenant/notifications"
+                                    )
+                                }
                                 className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
                             >
                                 <FiBell />
+
+                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                             </button>
 
+                            {/* Profile */}
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
                                 T
                             </div>
 
+                            {/* Logout */}
                             <button
-                                onClick={() => navigate("/login")}
+                                onClick={
+                                    handleLogout
+                                }
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
                             </button>
-
                         </div>
-
                     </div>
                 </header>
 
-                {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
-
-                    {/* Heading */}
+                    {/* PAGE TITLE */}
                     <div className="mb-8">
-
                         <h1 className="text-2xl font-bold text-slate-800">
                             My Documents
                         </h1>
 
                         <p className="mt-1 text-sm text-slate-500">
-                            View and manage documents related to your rental property.
+                            Documents provided by your property owner.
+                        </p>
+                    </div>
+
+                    {/* =====================================
+                        LINKED PROPERTY
+                    ====================================== */}
+                    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+                        <p className="text-sm text-slate-500">
+                            Linked Property
                         </p>
 
+                        <h2 className="mt-1 text-xl font-semibold text-slate-800">
+                            {property
+                                ? property.name
+                                : "No property linked"}
+                        </h2>
+
+                        {property && (
+                            <p className="mt-1 text-sm text-slate-500">
+                                {property.address},{" "}
+                                {property.city}
+                            </p>
+                        )}
                     </div>
 
-                    {/* Statistics */}
-                    <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
-
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Total Documents
-                                    </p>
-
-                                    <h2 className="mt-2 text-2xl font-bold text-slate-800">
-                                        {documents.length}
-                                    </h2>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    <FiFileText />
-                                </div>
-
-                            </div>
-
+                    {/* ERROR */}
+                    {error && (
+                        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                            {error}
                         </div>
+                    )}
 
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Agreements
-                                    </p>
-
-                                    <h2 className="mt-2 text-2xl font-bold text-blue-600">
-                                        {
-                                            documents.filter(
-                                                (document) => document.type === "Agreement"
-                                            ).length
-                                        }
-                                    </h2>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-100 text-2xl">
-                                    <FiFile />
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
-                            <div className="flex items-center justify-between">
-
-                                <div>
-                                    <p className="text-sm text-slate-500">
-                                        Receipts
-                                    </p>
-
-                                    <h2 className="mt-2 text-2xl font-bold text-green-600">
-                                        {
-                                            documents.filter(
-                                                (document) => document.type === "Receipt"
-                                            ).length
-                                        }
-                                    </h2>
-                                </div>
-
-                                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-2xl">
-                                    <FiFileText />
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    {/* Search */}
-                    <div className="mt-8 rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
-
-                        <input
-                            type="text"
-                            placeholder="Search documents..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                        />
-
-                    </div>
-
-                    {/* Documents */}
-                    <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-
+                    {/* =====================================
+                        DOCUMENTS
+                    ====================================== */}
+                    <div className="mt-6 rounded-xl border border-slate-200 bg-white shadow-sm">
                         <div className="border-b border-slate-200 px-6 py-5">
-
                             <h2 className="font-semibold text-slate-800">
-                                Available Documents
+                                Rental Documents
                             </h2>
 
                             <p className="mt-1 text-xs text-slate-500">
-                                Documents uploaded by your property owner.
+                                Documents uploaded by your owner.
                             </p>
-
                         </div>
 
-                        {filteredDocuments.length > 0 ? (
-
-                            <div className="divide-y divide-slate-100">
-
-                                {filteredDocuments.map((document) => (
-
-                                    <div
-                                        key={document.id}
-                                        className="p-6 transition hover:bg-slate-50"
-                                    >
-
-                                        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-
-                                            {/* Document Information */}
-                                            <div className="flex items-center gap-4">
-
-                                                <div
-                                                    className={`flex h-14 w-14 shrink-0 items-center justify-center rounded-xl text-2xl ${getIconBackground(
-                                                        document.type
-                                                    )}`}
-                                                >
-                                                    {getIcon(document.type)}
-                                                </div>
-
-                                                <div>
-
-                                                    <h3 className="font-semibold text-slate-800">
-                                                        {document.name}
-                                                    </h3>
-
-                                                    <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-
-                                                        <span>
-                                                            {document.type}
-                                                        </span>
-
-                                                        <span>•</span>
-
-                                                        <span>
-                                                            {document.date}
-                                                        </span>
-
-                                                        <span>•</span>
-
-                                                        <span>
-                                                            {document.size}
-                                                        </span>
-
-                                                    </div>
-
-                                                </div>
-
-                                            </div>
-
-                                            {/* Status + Actions */}
-                                            <div className="flex flex-wrap items-center gap-3">
-
-                                                <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                                                    {document.status}
-                                                </span>
-
-                                                <button
-                                                    onClick={() => handleView(document)}
-                                                    className="rounded-lg border border-slate-200 px-4 py-2 text-xs font-medium text-blue-600 transition hover:bg-blue-50"
-                                                >
-                                                    <FiEye className="mr-1 inline-block" />
-                                                    View
-                                                </button>
-
-                                                <button
-                                                    onClick={() => handleDownload(document)}
-                                                    className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-blue-700"
-                                                >
-                                                    <FiDownload className="mr-1 inline-block" />
-                                                    Download
-                                                </button>
-
-                                            </div>
-
-                                        </div>
-
+                        <div className="grid grid-cols-1 gap-6 p-6 md:grid-cols-2">
+                            {/* LOADING */}
+                            {loading ? (
+                                <div className="col-span-full py-12 text-center text-sm text-slate-500">
+                                    Loading documents...
+                                </div>
+                            ) : documents.length === 0 ? (
+                                /* EMPTY STATE */
+                                <div className="col-span-full py-12 text-center">
+                                    <div className="flex justify-center text-slate-400">
+                                        <FiFileText
+                                            size={48}
+                                        />
                                     </div>
 
-                                ))}
+                                    <h3 className="mt-4 font-semibold text-slate-800">
+                                        No documents available
+                                    </h3>
 
-                            </div>
-
-                        ) : (
-
-                            <div className="p-12 text-center">
-
-                                <div className="text-5xl">
-                                    <FiSearch className="mx-auto" />
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Your owner has not uploaded the rental documents yet.
+                                    </p>
                                 </div>
+                            ) : (
+                                /* DOCUMENT CARDS */
+                                documents.map(
+                                    (doc) => {
+                                        const isViewing =
+                                            viewingId ===
+                                            doc._id;
 
-                                <h3 className="mt-4 font-semibold text-slate-800">
-                                    No documents found
-                                </h3>
+                                        const isDownloading =
+                                            downloadingId ===
+                                            doc._id;
 
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Try searching with a different document name.
-                                </p>
+                                        return (
+                                            <div
+                                                key={
+                                                    doc._id
+                                                }
+                                                className="rounded-xl border border-slate-200 bg-slate-50 p-6"
+                                            >
+                                                {/* DOCUMENT INFO */}
+                                                <div className="flex items-start gap-4">
+                                                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                                                        <FiFileText
+                                                            size={
+                                                                23
+                                                            }
+                                                        />
+                                                    </div>
 
-                            </div>
+                                                    <div className="min-w-0">
+                                                        <h3 className="font-semibold text-slate-800">
+                                                            {
+                                                                doc.name
+                                                            }
+                                                        </h3>
 
-                        )}
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            {
+                                                                doc.size
+                                                            }{" "}
+                                                            •{" "}
+                                                            {
+                                                                doc.date
+                                                            }
+                                                        </p>
+                                                    </div>
+                                                </div>
 
+                                                {/* ACTION BUTTONS */}
+                                                <div className="mt-5 flex gap-2">
+                                                    {/* VIEW */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleView(
+                                                                doc
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            isViewing
+                                                        }
+                                                        className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        <FiEye
+                                                            size={
+                                                                17
+                                                            }
+                                                        />
+
+                                                        {isViewing
+                                                            ? "Opening..."
+                                                            : "View"}
+                                                    </button>
+
+                                                    {/* DOWNLOAD */}
+                                                    <button
+                                                        type="button"
+                                                        onClick={() =>
+                                                            handleDownload(
+                                                                doc
+                                                            )
+                                                        }
+                                                        disabled={
+                                                            isDownloading
+                                                        }
+                                                        className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+                                                    >
+                                                        <FiDownload
+                                                            size={
+                                                                17
+                                                            }
+                                                        />
+
+                                                        {isDownloading
+                                                            ? "Downloading..."
+                                                            : "Download"}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        );
+                                    }
+                                )
+                            )}
+                        </div>
                     </div>
-
                 </main>
             </div>
         </div>
@@ -451,3 +632,4 @@ const Documents = () => {
 };
 
 export default Documents;
+

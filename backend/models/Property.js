@@ -73,7 +73,14 @@ const propertySchema = new mongoose.Schema(
             type: String,
             default: null,
         },
-        
+
+        // ==========================================
+        // Rent Due Date
+        // ==========================================
+        rentDueDate: {
+            type: Date,
+            default: null,
+        },
     },
     {
         timestamps: true,

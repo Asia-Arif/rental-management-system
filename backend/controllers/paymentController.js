@@ -1,5 +1,6 @@
 const Payment = require("../models/Payment");
 const Property = require("../models/Property");
+const Notification = require("../models/Notification");
 const cloudinary = require("../config/cloudinary");
 
 // Submit Payment Proof - Tenant
@@ -215,17 +216,38 @@ const rejectPayment = async (req, res) => {
             });
         }
 
+        // Make sure this payment belongs to the logged-in owner
         if (payment.owner.toString() !== req.user.id) {
             return res.status(403).json({
                 message: "You are not authorized to reject this payment",
             });
         }
 
-        payment.status = "Rejected";
-        payment.rejectionReason =
+        // Set rejection reason
+        const reason =
             rejectionReason || "Payment proof was rejected";
 
+        // Update payment status
+        payment.status = "Rejected";
+        payment.rejectionReason = reason;
+
         await payment.save();
+
+        // Get property information for notification message
+        const property = await Property.findById(payment.property);
+
+        // Create notification for the tenant
+        await Notification.create({
+            user: payment.tenant,
+            title: "Payment Rejected",
+            message: `Your rent payment of Rs. ${payment.amount} for ${
+                property ? property.name : "your property"
+            } was rejected. Reason: ${reason}`,
+            type: "Payment",
+            read: false,
+            relatedProperty: payment.property,
+            relatedPayment: payment._id,
+        });
 
         res.status(200).json({
             message: "Payment rejected successfully",

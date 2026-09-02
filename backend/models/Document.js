@@ -12,33 +12,28 @@ const documentSchema = new mongoose.Schema(
             type: String,
             enum: [
                 "Rental Agreement",
-                "Property Document",
-                "Rent Receipt",
+                "Property Rules & Regulations",
             ],
             required: true,
         },
 
-        property: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Property",
-            required: true,
-        },
-
-        tenant: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-            required: true,
-        },
-
+        // Common document belongs to owner
         owner: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
         },
 
+        // Cloudinary URL
         fileUrl: {
             type: String,
             required: true,
+        },
+
+        // Cloudinary public ID
+        cloudinaryPublicId: {
+            type: String,
+            default: "",
         },
 
         fileSize: {
@@ -56,4 +51,18 @@ const documentSchema = new mongoose.Schema(
     }
 );
 
-module.exports = mongoose.model("Document", documentSchema);
+// One document of each type for each owner
+documentSchema.index(
+    {
+        owner: 1,
+        type: 1,
+    },
+    {
+        unique: true,
+    }
+);
+
+module.exports = mongoose.model(
+    "Document",
+    documentSchema
+);

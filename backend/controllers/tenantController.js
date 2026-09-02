@@ -21,7 +21,11 @@ const getOwnerTenants = async (req, res) => {
                 phone: property.tenant.phone || "Not provided",
                 property: property.name,
                 rent: property.rent,
-                dueDate: "Not set",
+
+                dueDate: property.rentDueDate
+                    ? property.rentDueDate.toISOString().split("T")[0]
+                    : "Not set",
+
                 status:
                     property.status === "Occupied"
                         ? "Active"
@@ -47,7 +51,9 @@ const inviteTenant = async (req, res) => {
     try {
         const { email, propertyId } = req.body;
 
-        // Check required fields
+        // ------------------------------------------
+        // Validate required fields
+        // ------------------------------------------
         if (!email || !propertyId) {
             return res.status(400).json({
                 message: "Tenant email and property are required",
@@ -56,7 +62,9 @@ const inviteTenant = async (req, res) => {
 
         const tenantEmail = email.trim().toLowerCase();
 
-        // Find property belonging to current owner
+        // ------------------------------------------
+        // Find property belonging to owner
+        // ------------------------------------------
         const property = await Property.findOne({
             _id: propertyId,
             owner: req.user.id,
@@ -69,55 +77,66 @@ const inviteTenant = async (req, res) => {
             });
         }
 
-        // Check if property already has a tenant
+        // ------------------------------------------
+        // Check property already occupied
+        // ------------------------------------------
         if (property.tenant) {
             return res.status(400).json({
                 message: "This property already has a tenant",
             });
         }
 
-        // Generate 6-digit invite code
-        const inviteCode = Math.floor(
-            100000 + Math.random() * 900000
-        ).toString();
-
-        // Save tenant email and invite code
-        property.tenantEmail = tenantEmail;
-        property.inviteCode = inviteCode;
-
-        await property.save();
-
-        // Check Brevo API configuration
+        // ------------------------------------------
+        // Check Brevo configuration
+        // ------------------------------------------
         if (!process.env.BREVO_API_KEY) {
             console.error("BREVO_API_KEY is missing in .env");
 
             return res.status(500).json({
-                message: "Brevo API key is not configured",
+                message:
+                    "Brevo API key is not configured. Please check backend .env file.",
             });
         }
 
         if (!process.env.BREVO_SENDER_EMAIL) {
-            console.error(
-                "BREVO_SENDER_EMAIL is missing in .env"
-            );
+            console.error("BREVO_SENDER_EMAIL is missing in .env");
 
             return res.status(500).json({
-                message: "Brevo sender email is not configured",
+                message:
+                    "Brevo sender email is not configured. Please check backend .env file.",
             });
         }
 
+        // ------------------------------------------
+        // Generate 6-digit invite code
+        // ------------------------------------------
+        const inviteCode = Math.floor(
+            100000 + Math.random() * 900000
+        ).toString();
+
+        console.log("==========================================");
+        console.log("Generated Invite Code:", inviteCode);
+        console.log("Property ID:", property._id);
+        console.log("Tenant Email:", tenantEmail);
+        console.log("==========================================");
+
+        // ------------------------------------------
         // Create Brevo client
+        // ------------------------------------------
         const brevo = new BrevoClient({
             apiKey: process.env.BREVO_API_KEY,
         });
 
-        // Send email using Brevo API
+        // ------------------------------------------
+        // Send email
+        // ------------------------------------------
         const result =
             await brevo.transactionalEmails.sendTransacEmail({
                 sender: {
                     name:
                         process.env.BREVO_SENDER_NAME ||
                         "RentEase",
+
                     email:
                         process.env.BREVO_SENDER_EMAIL,
                 },
@@ -128,8 +147,7 @@ const inviteTenant = async (req, res) => {
                     },
                 ],
 
-                subject:
-                    "RentEase - Property Invitation",
+                subject: "RentEase - Property Invitation",
 
                 textContent: `Hello,
 
@@ -139,40 +157,76 @@ Your invite code is: ${inviteCode}
 
 Please enter this code in the RentEase Tenant Portal to link yourself to the property.
 
-This code is for this property only.
+This code is valid for this property only.
 
 Thank you,
 RentEase`,
             });
 
+        console.log("Brevo email sent successfully.");
         console.log(
-            "Brevo email sent successfully:",
-            result
+            "Brevo message ID:",
+            result?.messageId || "No message ID returned"
         );
 
-        res.status(200).json({
-            message: "Invite sent successfully!",
+        // ------------------------------------------
+        // SAVE INVITE CODE IN DATABASE
+        // ------------------------------------------
+        property.tenantEmail = tenantEmail;
+        property.inviteCode = inviteCode;
+        property.rentDueDate = null;
+
+        const savedProperty = await property.save();
+
+        console.log("==========================================");
+        console.log("Invite saved successfully!");
+        console.log("Saved Property ID:", savedProperty._id);
+        console.log("Saved Invite Code:", savedProperty.inviteCode);
+        console.log("Saved Tenant Email:", savedProperty.tenantEmail);
+        console.log("==========================================");
+
+        // ------------------------------------------
+        // Success response
+        // ------------------------------------------
+        return res.status(200).json({
+            message:
+                "Invite sent successfully! Please ask the tenant to check their email.",
+
+            inviteCode: savedProperty.inviteCode,
         });
     } catch (error) {
-        console.error("Invite tenant error:");
-        console.error("Error message:", error.message);
+        console.error(
+            "=========================================="
+        );
 
-        if (error.body) {
-            console.error(
-                "Brevo error body:",
-                error.body
-            );
-        }
+        console.error(
+            "Invite tenant / Brevo email error"
+        );
 
-        if (error.statusCode) {
-            console.error(
-                "Brevo status code:",
-                error.statusCode
-            );
-        }
+        console.error(
+            "Error message:",
+            error?.message || error
+        );
 
-        res.status(500).json({
-            message: "Failed to send tenant invite",
+        console.error(
+            "Error status:",
+            error?.statusCode || "No status code"
+        );
+
+        console.error(
+            "Error body:",
+            error?.body || "No error body"
+        );
+
+        console.error(
+            "=========================================="
+        );
+
+        return res.status(500).json({
+            message:
+                error?.body?.message ||
+                error?.message ||
+                "Failed to send tenant invite. Please check Brevo configuration.",
         });
     }
 };
@@ -184,32 +238,49 @@ const acceptInvite = async (req, res) => {
     try {
         const { inviteCode } = req.body;
 
-        // Check invite code
         if (!inviteCode) {
             return res.status(400).json({
                 message: "Invite code is required",
             });
         }
 
+        const cleanInviteCode = inviteCode.trim();
+
+        console.log("==========================================");
+        console.log("Tenant entered invite code:", cleanInviteCode);
+        console.log("Tenant ID:", req.user.id);
+        console.log("==========================================");
+
+        // ------------------------------------------
         // Find property using invite code
+        // ------------------------------------------
         const property = await Property.findOne({
-            inviteCode: inviteCode.trim(),
+            inviteCode: cleanInviteCode,
         });
 
         if (!property) {
+            console.log(
+                "No property found for invite code:",
+                cleanInviteCode
+            );
+
             return res.status(404).json({
                 message: "Invalid invite code",
             });
         }
 
-        // Check if property already has a tenant
+        // ------------------------------------------
+        // Check if property already has tenant
+        // ------------------------------------------
         if (property.tenant) {
             return res.status(400).json({
                 message: "This property already has a tenant",
             });
         }
 
+        // ------------------------------------------
         // Find logged-in tenant
+        // ------------------------------------------
         const tenant = await User.findById(req.user.id);
 
         if (!tenant) {
@@ -218,8 +289,9 @@ const acceptInvite = async (req, res) => {
             });
         }
 
-        // Check that invite was sent to
-        // logged-in tenant's email
+        // ------------------------------------------
+        // Check tenant email
+        // ------------------------------------------
         if (
             !property.tenantEmail ||
             tenant.email.toLowerCase() !==
@@ -231,17 +303,38 @@ const acceptInvite = async (req, res) => {
             });
         }
 
-        // Link tenant with property
+        // ------------------------------------------
+        // Calculate first rent due date
+        // ------------------------------------------
+        const joinedDate = new Date();
+
+        const dueDate = new Date(
+            joinedDate.getFullYear(),
+            joinedDate.getMonth() + 1,
+            joinedDate.getDate()
+        );
+
+        // ------------------------------------------
+        // Link tenant
+        // ------------------------------------------
         property.tenant = tenant._id;
         property.status = "Occupied";
+        property.rentDueDate = dueDate;
 
-        // Clear invite information
+        // Clear invite data after successful joining
         property.inviteCode = null;
         property.tenantEmail = null;
 
         await property.save();
 
-        res.status(200).json({
+        console.log("==========================================");
+        console.log("Property joined successfully!");
+        console.log("Property ID:", property._id);
+        console.log("Tenant ID:", tenant._id);
+        console.log("Due Date:", dueDate);
+        console.log("==========================================");
+
+        return res.status(200).json({
             message: "Property joined successfully!",
 
             property: {
@@ -254,13 +347,18 @@ const acceptInvite = async (req, res) => {
                 bedrooms: property.bedrooms,
                 bathrooms: property.bathrooms,
                 status: property.status,
+
+                dueDate: property.rentDueDate
+                    ? property.rentDueDate.toISOString().split("T")[0]
+                    : null,
             },
         });
     } catch (error) {
         console.error("Accept invite error:", error);
 
-        res.status(500).json({
+        return res.status(500).json({
             message: "Failed to join property",
+            error: error.message,
         });
     }
 };
@@ -270,7 +368,6 @@ const acceptInvite = async (req, res) => {
 // ==========================================
 const getMyProperty = async (req, res) => {
     try {
-        // Find property linked with logged-in tenant
         const property = await Property.findOne({
             tenant: req.user.id,
         }).populate(
@@ -278,7 +375,6 @@ const getMyProperty = async (req, res) => {
             "name email phone"
         );
 
-        // No property found
         if (!property) {
             return res.status(404).json({
                 message:
@@ -286,7 +382,7 @@ const getMyProperty = async (req, res) => {
             });
         }
 
-        res.status(200).json({
+        return res.status(200).json({
             property: {
                 id: property._id,
                 name: property.name,
@@ -299,15 +395,19 @@ const getMyProperty = async (req, res) => {
                 description: property.description,
                 status: property.status,
 
+                dueDate: property.rentDueDate
+                    ? property.rentDueDate.toISOString().split("T")[0]
+                    : null,
+
                 owner: property.owner
                     ? {
-                          id: property.owner._id,
-                          name: property.owner.name,
-                          email: property.owner.email,
-                          phone:
-                              property.owner.phone ||
-                              "Not provided",
-                      }
+                        id: property.owner._id,
+                        name: property.owner.name,
+                        email: property.owner.email,
+                        phone:
+                            property.owner.phone ||
+                            "Not provided",
+                    }
                     : null,
             },
         });
@@ -317,9 +417,10 @@ const getMyProperty = async (req, res) => {
             error
         );
 
-        res.status(500).json({
+        return res.status(500).json({
             message:
                 "Failed to fetch your property",
+            error: error.message,
         });
     }
 };
