@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    FaChartBar,
-    FaHome,
-    FaPlus,
-    FaUsers,
     FaMoneyBillWave,
     FaTools,
     FaBell,
-    FaFileAlt,
     FaEnvelope,
     FaClock,
     FaSearch,
     FaCheck,
 } from "react-icons/fa";
+
+import Sidebar from "../../components/Sidebar";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -280,112 +277,8 @@ const Notifications = () => {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
-
-                {/* Logo */}
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Owner Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/dashboard")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaChartBar />
-                            <span>Dashboard</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/properties")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaHome />
-                            <span>Properties</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/add-property")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaPlus />
-                            <span>Add Property</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/tenants")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaUsers />
-                            <span>Tenants</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/payments")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaMoneyBillWave />
-                            <span>Rent Payments</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/maintenance")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaTools />
-                            <span>Maintenance</span>
-                        </button>
-
-                        {/* Active Notifications */}
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <FaBell />
-                            <span>Notifications</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate("/owner/documents")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FaFileAlt />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
+            {/* Common Sidebar */}
+            <Sidebar role="owner" />
 
 
             {/* Main Content */}
@@ -675,10 +568,11 @@ const Notifications = () => {
                                         (notification) => (
                                             <div
                                                 key={notification._id}
-                                                className={`flex flex-col gap-4 border-b border-slate-100 px-6 py-5 transition last:border-0 md:flex-row md:items-center ${!notification.read
+                                                className={`flex flex-col gap-4 border-b border-slate-100 px-6 py-5 transition last:border-0 md:flex-row md:items-center ${
+                                                    !notification.read
                                                         ? "bg-blue-50/40"
                                                         : "bg-white"
-                                                    }`}
+                                                }`}
                                             >
 
                                                 {/* Icon */}

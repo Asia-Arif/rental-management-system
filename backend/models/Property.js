@@ -81,6 +81,20 @@ const propertySchema = new mongoose.Schema(
             type: Date,
             default: null,
         },
+
+        // ==========================================
+        // Rent Reminder Tracking
+        // ==========================================
+        lastRentReminderDate: {
+            type: Date,
+            default: null,
+        },
+
+        lastRentReminderType: {
+            type: String,
+            enum: ["BeforeDue", "Overdue", null],
+            default: null,
+        },
     },
     {
         timestamps: true,

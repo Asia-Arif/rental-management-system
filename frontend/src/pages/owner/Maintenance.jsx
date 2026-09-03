@@ -1,18 +1,17 @@
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     BarChart3,
-    House,
-    Plus,
-    Users,
     CircleDollarSign,
     Wrench,
     Bell,
-    FileText,
     Clock3,
     CircleCheck,
     Search,
 } from "lucide-react";
+
+import Sidebar from "../../components/Sidebar";
 
 const Maintenance = () => {
     const navigate = useNavigate();
@@ -170,121 +169,8 @@ const Maintenance = () => {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
-
-                {/* Logo */}
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Owner Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        {/* Dashboard */}
-                        <button
-                            onClick={() =>
-                                navigate("/owner/dashboard")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <BarChart3 />
-                            <span>Dashboard</span>
-                        </button>
-
-                        {/* Properties */}
-                        <button
-                            onClick={() =>
-                                navigate("/owner/properties")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <House />
-                            <span>Properties</span>
-                        </button>
-
-                        {/* Add Property */}
-                        <button
-                            onClick={() =>
-                                navigate("/owner/add-property")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Plus />
-                            <span>Add Property</span>
-                        </button>
-
-                        {/* Tenants */}
-                        <button
-                            onClick={() =>
-                                navigate("/owner/tenants")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Users />
-                            <span>Tenants</span>
-                        </button>
-
-                        {/* Rent Payments */}
-                        <button
-                            onClick={() =>
-                                navigate("/owner/payments")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <CircleDollarSign />
-                            <span>Rent Payments</span>
-                        </button>
-
-                        {/* Active Maintenance */}
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <Wrench />
-                            <span>Maintenance</span>
-                        </button>
-
-                        {/* Notifications */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/notifications"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Bell />
-                            <span>Notifications</span>
-                        </button>
-
-                        {/* Documents */}
-                        <button
-                            onClick={() =>
-                                navigate("/owner/documents")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FileText />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
+            {/* Common Sidebar */}
+            <Sidebar role="owner" />
 
             {/* Main Content */}
             <div className="ml-64">
@@ -689,14 +575,15 @@ const Maintenance = () => {
                                                         <td className="px-6 py-5">
 
                                                             <span
-                                                                className={`rounded-full px-3 py-1 text-xs font-medium ${request.status ===
-                                                                        "Pending"
+                                                                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                                    request.status ===
+                                                                    "Pending"
                                                                         ? "bg-yellow-100 text-yellow-700"
                                                                         : request.status ===
                                                                             "In Progress"
                                                                             ? "bg-blue-100 text-blue-700"
                                                                             : "bg-green-100 text-green-700"
-                                                                    }`}
+                                                                }`}
                                                             >
                                                                 {
                                                                     request.status
@@ -811,3 +698,4 @@ const Maintenance = () => {
 };
 
 export default Maintenance;
+

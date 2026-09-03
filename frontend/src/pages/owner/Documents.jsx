@@ -1,12 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    BarChart3,
     House,
-    Plus,
-    Users,
-    CircleDollarSign,
-    Wrench,
     Bell,
     FileText,
     Upload,
@@ -15,13 +10,14 @@ import {
     FilePenLine,
 } from "lucide-react";
 
+import Sidebar from "../../components/Sidebar";
+
 const API_URL = "http://localhost:5000/api";
 
 const documentTypes = [
     {
         type: "Rental Agreement",
-        description:
-            "Common rental agreement for your tenants.",
+        description: "Common rental agreement for your tenants.",
         icon: FilePenLine,
     },
     {
@@ -35,81 +31,51 @@ const documentTypes = [
 const Documents = () => {
     const navigate = useNavigate();
 
-    const [documents, setDocuments] =
-        useState([]);
-
-    const [loading, setLoading] =
-        useState(true);
-
-    const [uploadingType, setUploadingType] =
-        useState("");
-
-    const [message, setMessage] =
-        useState("");
-
-    const [error, setError] =
-        useState("");
-
-    const [viewingId, setViewingId] =
-        useState(null);
-
-    const [downloadingId, setDownloadingId] =
-        useState(null);
+    const [documents, setDocuments] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [uploadingType, setUploadingType] = useState("");
+    const [message, setMessage] = useState("");
+    const [error, setError] = useState("");
+    const [viewingId, setViewingId] = useState(null);
+    const [downloadingId, setDownloadingId] = useState(null);
 
     // ============================================
     // FETCH OWNER DOCUMENTS
     // ============================================
+
     const fetchDocuments = async () => {
         try {
             setLoading(true);
             setError("");
 
-            const token =
-                localStorage.getItem(
-                    "token"
-                );
+            const token = localStorage.getItem("token");
 
             if (!token) {
-                setError(
-                    "Please login first."
-                );
+                setError("Please login first.");
                 return;
             }
 
-            const response =
-                await fetch(
-                    `${API_URL}/documents`,
-                    {
-                        method: "GET",
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`,
-                        },
-                    }
-                );
+            const response = await fetch(`${API_URL}/documents`, {
+                method: "GET",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
-            const data =
-                await response.json();
+            const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(
-                    data.message ||
-                        "Failed to fetch documents."
+                    data.message || "Failed to fetch documents."
                 );
             }
 
-            setDocuments(
-                data.documents || []
-            );
+            setDocuments(data.documents || []);
         } catch (err) {
-            console.error(
-                "Fetch documents error:",
-                err
-            );
+            console.error("Fetch documents error:", err);
 
             setError(
-                err.message ||
-                    "Failed to load documents."
+                err.message || "Failed to load documents."
             );
         } finally {
             setLoading(false);
@@ -123,22 +89,17 @@ const Documents = () => {
     // ============================================
     // FIND DOCUMENT
     // ============================================
+
     const getDocument = (type) => {
-        return documents.find(
-            (doc) =>
-                doc.type === type
-        );
+        return documents.find((doc) => doc.type === type);
     };
 
     // ============================================
     // UPLOAD DOCUMENT
     // ============================================
-    const handleUpload = async (
-        type,
-        event
-    ) => {
-        const file =
-            event.target.files?.[0];
+
+    const handleUpload = async (type, event) => {
+        const file = event.target.files?.[0];
 
         event.target.value = "";
 
@@ -150,108 +111,74 @@ const Documents = () => {
         }
 
         // PDF only
-        if (
-            file.type !==
-            "application/pdf"
-        ) {
-            setError(
-                "Only PDF files are allowed."
-            );
+        if (file.type !== "application/pdf") {
+            setError("Only PDF files are allowed.");
             return;
         }
 
         // Max 7 MB
-        if (
-            file.size >
-            7 * 1024 * 1024
-        ) {
-            setError(
-                "PDF size must be less than 7 MB."
-            );
+        if (file.size > 7 * 1024 * 1024) {
+            setError("PDF size must be less than 7 MB.");
             return;
         }
 
         try {
             setUploadingType(type);
 
-            const token =
-                localStorage.getItem(
-                    "token"
-                );
+            const token = localStorage.getItem("token");
 
             if (!token) {
-                throw new Error(
-                    "Please login first."
-                );
+                throw new Error("Please login first.");
             }
 
             // =====================================
             // CONVERT PDF TO BASE64
             // =====================================
-            const fileData =
-                await new Promise(
-                    (
-                        resolve,
-                        reject
-                    ) => {
-                        const reader =
-                            new FileReader();
 
-                        reader.onload =
-                            () =>
-                                resolve(
-                                    reader.result
-                                );
+            const fileData = await new Promise(
+                (resolve, reject) => {
+                    const reader = new FileReader();
 
-                        reader.onerror =
-                            () =>
-                                reject(
-                                    new Error(
-                                        "Failed to read PDF."
-                                    )
-                                );
+                    reader.onload = () =>
+                        resolve(reader.result);
 
-                        reader.readAsDataURL(
-                            file
+                    reader.onerror = () =>
+                        reject(
+                            new Error(
+                                "Failed to read PDF."
+                            )
                         );
-                    }
-                );
+
+                    reader.readAsDataURL(file);
+                }
+            );
 
             // =====================================
             // SEND PDF TO BACKEND
             // =====================================
-            const response =
-                await fetch(
-                    `${API_URL}/documents/upload`,
-                    {
-                        method: "POST",
 
-                        headers: {
-                            "Content-Type":
-                                "application/json",
+            const response = await fetch(
+                `${API_URL}/documents/upload`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        type,
+                        fileName: file.name,
+                        fileType: file.type,
+                        fileData,
+                    }),
+                }
+            );
 
-                            Authorization:
-                                `Bearer ${token}`,
-                        },
-
-                        body: JSON.stringify({
-                            type,
-                            fileName:
-                                file.name,
-                            fileType:
-                                file.type,
-                            fileData,
-                        }),
-                    }
-                );
-
-            const data =
-                await response.json();
+            const data = await response.json();
 
             if (!response.ok) {
                 throw new Error(
-                    data.message ||
-                        "Upload failed."
+                    data.message || "Upload failed."
                 );
             }
 
@@ -261,14 +188,10 @@ const Documents = () => {
 
             await fetchDocuments();
         } catch (err) {
-            console.error(
-                "Upload error:",
-                err
-            );
+            console.error("Upload error:", err);
 
             setError(
-                err.message ||
-                    "Failed to upload document."
+                err.message || "Failed to upload document."
             );
         } finally {
             setUploadingType("");
@@ -278,94 +201,65 @@ const Documents = () => {
     // ============================================
     // VIEW PDF
     // ============================================
+
     const handleView = async (doc) => {
         try {
             setViewingId(doc._id);
 
-            const token =
-                localStorage.getItem(
-                    "token"
-                );
+            const token = localStorage.getItem("token");
 
             if (!token) {
-                alert(
-                    "Please login first."
-                );
+                alert("Please login first.");
                 return;
             }
 
-            const response =
-                await fetch(
-                    `${API_URL}/documents/view/${doc._id}`,
-                    {
-                        method: "GET",
-
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`,
-                        },
-                    }
-                );
+            const response = await fetch(
+                `${API_URL}/documents/view/${doc._id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
             if (!response.ok) {
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 throw new Error(
-                    data.message ||
-                        "Failed to open PDF."
+                    data.message || "Failed to open PDF."
                 );
             }
 
-            const blob =
-                await response.blob();
+            const blob = await response.blob();
 
-            const pdfBlob =
-                new Blob(
-                    [blob],
-                    {
-                        type: "application/pdf",
-                    }
-                );
+            const pdfBlob = new Blob([blob], {
+                type: "application/pdf",
+            });
 
             const blobUrl =
-                window.URL.createObjectURL(
-                    pdfBlob
-                );
+                window.URL.createObjectURL(pdfBlob);
 
-            const newWindow =
-                window.open(
-                    "",
-                    "_blank"
-                );
+            const newWindow = window.open("", "_blank");
 
             if (!newWindow) {
-                window.URL.revokeObjectURL(
-                    blobUrl
-                );
+                window.URL.revokeObjectURL(blobUrl);
 
                 throw new Error(
                     "Please allow pop-ups in your browser to view the PDF."
                 );
             }
 
-            newWindow.location.href =
-                blobUrl;
+            newWindow.location.href = blobUrl;
 
             setTimeout(() => {
-                window.URL.revokeObjectURL(
-                    blobUrl
-                );
+                window.URL.revokeObjectURL(blobUrl);
             }, 60000);
         } catch (err) {
-            console.error(
-                "View PDF error:",
-                err
-            );
+            console.error("View PDF error:", err);
 
             alert(
-                err.message ||
-                    "Unable to open the PDF."
+                err.message || "Unable to open the PDF."
             );
         } finally {
             setViewingId(null);
@@ -375,40 +269,30 @@ const Documents = () => {
     // ============================================
     // DOWNLOAD PDF
     // ============================================
-    const handleDownload = async (
-        doc
-    ) => {
+
+    const handleDownload = async (doc) => {
         try {
             setDownloadingId(doc._id);
 
-            const token =
-                localStorage.getItem(
-                    "token"
-                );
+            const token = localStorage.getItem("token");
 
             if (!token) {
-                alert(
-                    "Please login first."
-                );
+                alert("Please login first.");
                 return;
             }
 
-            const response =
-                await fetch(
-                    `${API_URL}/documents/download/${doc._id}`,
-                    {
-                        method: "GET",
-
-                        headers: {
-                            Authorization:
-                                `Bearer ${token}`,
-                        },
-                    }
-                );
+            const response = await fetch(
+                `${API_URL}/documents/download/${doc._id}`,
+                {
+                    method: "GET",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
 
             if (!response.ok) {
-                const data =
-                    await response.json();
+                const data = await response.json();
 
                 throw new Error(
                     data.message ||
@@ -416,55 +300,33 @@ const Documents = () => {
                 );
             }
 
-            const blob =
-                await response.blob();
+            const blob = await response.blob();
 
-            const pdfBlob =
-                new Blob(
-                    [blob],
-                    {
-                        type: "application/pdf",
-                    }
-                );
+            const pdfBlob = new Blob([blob], {
+                type: "application/pdf",
+            });
 
             const blobUrl =
-                window.URL.createObjectURL(
-                    pdfBlob
-                );
+                window.URL.createObjectURL(pdfBlob);
 
             const link =
-                window.document.createElement(
-                    "a"
-                );
+                window.document.createElement("a");
 
             link.href = blobUrl;
 
-            let fileName =
-                doc.name ||
-                "document";
+            let fileName = doc.name || "document";
 
-            fileName =
-                fileName.replace(
-                    /\.pdf$/i,
-                    ""
-                );
+            fileName = fileName.replace(/\.pdf$/i, "");
 
-            link.download =
-                `${fileName}.pdf`;
+            link.download = `${fileName}.pdf`;
 
-            window.document.body.appendChild(
-                link
-            );
+            window.document.body.appendChild(link);
 
             link.click();
 
-            window.document.body.removeChild(
-                link
-            );
+            window.document.body.removeChild(link);
 
-            window.URL.revokeObjectURL(
-                blobUrl
-            );
+            window.URL.revokeObjectURL(blobUrl);
         } catch (err) {
             console.error(
                 "Download PDF error:",
@@ -483,133 +345,17 @@ const Documents = () => {
     // ============================================
     // LOGOUT
     // ============================================
+
     const handleLogout = () => {
-        localStorage.removeItem(
-            "token"
-        );
-
-        localStorage.removeItem(
-            "user"
-        );
-
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
         navigate("/login");
     };
 
     return (
         <div className="min-h-screen bg-slate-50">
-            {/* SIDEBAR */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                <nav className="px-4 py-6">
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Owner Menu
-                    </p>
-
-                    <div className="space-y-2">
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/dashboard"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <BarChart3 />
-                            Dashboard
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/properties"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <House />
-                            Properties
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/add-property"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Plus />
-                            Add Property
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/tenants"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Users />
-                            Tenants
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/payments"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <CircleDollarSign />
-                            Rent Payments
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/maintenance"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Wrench />
-                            Maintenance
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/notifications"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Bell />
-                            Notifications
-                        </button>
-
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <FileText />
-                            Documents
-                        </button>
-                    </div>
-                </nav>
-            </aside>
+            {/* COMMON SIDEBAR */}
+            <Sidebar role="owner" />
 
             {/* MAIN */}
             <div className="ml-64">
@@ -645,9 +391,7 @@ const Documents = () => {
                             </div>
 
                             <button
-                                onClick={
-                                    handleLogout
-                                }
+                                onClick={handleLogout}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
                             >
                                 Logout
@@ -668,6 +412,7 @@ const Documents = () => {
                     </div>
 
                     {/* MESSAGES */}
+
                     {message && (
                         <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                             {message}
@@ -681,6 +426,7 @@ const Documents = () => {
                     )}
 
                     {/* DOCUMENT CARDS */}
+
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         {documentTypes.map(
                             ({
@@ -689,9 +435,7 @@ const Documents = () => {
                                 icon: Icon,
                             }) => {
                                 const doc =
-                                    getDocument(
-                                        type
-                                    );
+                                    getDocument(type);
 
                                 const isUploading =
                                     uploadingType ===
@@ -711,31 +455,27 @@ const Documents = () => {
                                         className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
                                     >
                                         {/* TITLE */}
+
                                         <div className="flex items-center gap-4">
                                             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
                                                 <Icon
-                                                    size={
-                                                        27
-                                                    }
+                                                    size={27}
                                                 />
                                             </div>
 
                                             <div>
                                                 <h2 className="text-lg font-semibold text-slate-800">
-                                                    {
-                                                        type
-                                                    }
+                                                    {type}
                                                 </h2>
 
                                                 <p className="mt-1 text-sm text-slate-500">
-                                                    {
-                                                        description
-                                                    }
+                                                    {description}
                                                 </p>
                                             </div>
                                         </div>
 
                                         {/* STATUS */}
+
                                         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
                                             {doc ? (
                                                 <>
@@ -746,13 +486,9 @@ const Documents = () => {
                                                             </p>
 
                                                             <p className="mt-1 text-xs text-slate-500">
-                                                                {
-                                                                    doc.size
-                                                                }{" "}
+                                                                {doc.size}{" "}
                                                                 •{" "}
-                                                                {
-                                                                    doc.date
-                                                                }
+                                                                {doc.date}
                                                             </p>
                                                         </div>
 
@@ -762,6 +498,7 @@ const Documents = () => {
                                                     </div>
 
                                                     {/* VIEW / DOWNLOAD */}
+
                                                     <div className="mt-4 flex gap-2">
                                                         <button
                                                             type="button"
@@ -824,12 +561,9 @@ const Documents = () => {
                                         </div>
 
                                         {/* UPLOAD */}
+
                                         <label className="mt-5 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700">
-                                            <Upload
-                                                size={
-                                                    18
-                                                }
-                                            />
+                                            <Upload size={18} />
 
                                             {isUploading
                                                 ? "Uploading..."

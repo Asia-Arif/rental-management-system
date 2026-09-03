@@ -1,15 +1,13 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    FiBarChart2,
-    FiHome,
-    FiDollarSign,
     FiTool,
     FiBell,
-    FiFileText,
     FiClock,
     FiCheckCircle,
 } from "react-icons/fi";
+
+import Sidebar from "../../components/Sidebar";
 
 const Maintenance = () => {
     const navigate = useNavigate();
@@ -24,7 +22,6 @@ const Maintenance = () => {
     const [requests, setRequests] = useState([]);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
-
 
     // =====================================================
     // GET TENANT MAINTENANCE REQUESTS
@@ -75,7 +72,6 @@ const Maintenance = () => {
         }
     };
 
-
     // =====================================================
     // LOAD DATA
     // =====================================================
@@ -83,7 +79,6 @@ const Maintenance = () => {
     useEffect(() => {
         fetchMaintenanceRequests();
     }, []);
-
 
     // =====================================================
     // SUBMIT MAINTENANCE REQUEST
@@ -162,7 +157,6 @@ const Maintenance = () => {
         }
     };
 
-
     // =====================================================
     // STATISTICS
     // =====================================================
@@ -177,108 +171,17 @@ const Maintenance = () => {
         (request) => request.status === "Completed"
     ).length;
 
-
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white shadow-xl">
-
-                {/* Logo */}
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Tenant Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        {/* Dashboard */}
-                        <button
-                            onClick={() => navigate("/tenant/dashboard")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiBarChart2 />
-                            <span>Dashboard</span>
-                        </button>
-
-                        {/* Join Property */}
-                        <button
-                            onClick={() => navigate("/tenant/join-property")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiHome />
-                            <span>Join Property</span>
-                        </button>
-
-                        {/* My Property */}
-                        <button
-                            onClick={() => navigate("/tenant/my-property")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiHome />
-                            <span>My Property</span>
-                        </button>
-
-                        {/* Rent Payment */}
-                        <button
-                            onClick={() => navigate("/tenant/rent-payment")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiDollarSign />
-                            <span>Rent Payment</span>
-                        </button>
-
-                        {/* Active Maintenance */}
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <FiTool />
-                            <span>Maintenance</span>
-                        </button>
-
-                        {/* Notifications */}
-                        <button
-                            onClick={() => navigate("/tenant/notifications")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiBell />
-                            <span>Notifications</span>
-                        </button>
-
-                        {/* Documents */}
-                        <button
-                            onClick={() => navigate("/tenant/documents")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiFileText />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
-
+            {/* Common Sidebar */}
+            <Sidebar role="tenant" />
 
             {/* Main Content */}
             <div className="ml-64">
 
                 {/* Navbar */}
                 <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
                     <div className="flex h-full items-center justify-between px-8">
 
                         <div>
@@ -320,17 +223,14 @@ const Maintenance = () => {
                             </button>
 
                         </div>
-
                     </div>
                 </header>
-
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
 
                     {/* Heading */}
                     <div className="mb-8">
-
                         <h1 className="text-2xl font-bold text-slate-800">
                             Maintenance Requests
                         </h1>
@@ -339,16 +239,13 @@ const Maintenance = () => {
                             Report an issue and keep track of your maintenance
                             requests.
                         </p>
-
                     </div>
-
 
                     {/* Statistics */}
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
 
                         {/* Total */}
                         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
                             <div className="flex items-center justify-between">
 
                                 <div>
@@ -366,13 +263,10 @@ const Maintenance = () => {
                                 </div>
 
                             </div>
-
                         </div>
-
 
                         {/* In Progress */}
                         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
                             <div className="flex items-center justify-between">
 
                                 <div>
@@ -390,13 +284,10 @@ const Maintenance = () => {
                                 </div>
 
                             </div>
-
                         </div>
-
 
                         {/* Completed */}
                         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-
                             <div className="flex items-center justify-between">
 
                                 <div>
@@ -414,26 +305,22 @@ const Maintenance = () => {
                                 </div>
 
                             </div>
-
                         </div>
 
                     </div>
-
 
                     {/* New Request */}
                     <div className="mt-8 rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
                         <div className="mb-6">
-
                             <h2 className="text-lg font-semibold text-slate-800">
                                 Submit Maintenance Request
                             </h2>
 
                             <p className="mt-1 text-sm text-slate-500">
-                                Tell your property owner about a problem in your
-                                property.
+                                Tell your property owner about a problem in
+                                your property.
                             </p>
-
                         </div>
 
                         <form onSubmit={handleSubmit}>
@@ -442,7 +329,6 @@ const Maintenance = () => {
 
                                 {/* Issue Type */}
                                 <div>
-
                                     <label className="mb-2 block text-sm font-medium text-slate-700">
                                         Issue Type
                                     </label>
@@ -454,7 +340,6 @@ const Maintenance = () => {
                                         }
                                         className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
-
                                         <option value="">
                                             Select issue type
                                         </option>
@@ -482,15 +367,11 @@ const Maintenance = () => {
                                         <option value="Other">
                                             Other
                                         </option>
-
                                     </select>
-
                                 </div>
-
 
                                 {/* Priority */}
                                 <div>
-
                                     <label className="mb-2 block text-sm font-medium text-slate-700">
                                         Priority
                                     </label>
@@ -502,7 +383,6 @@ const Maintenance = () => {
                                         }
                                         className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     >
-
                                         <option value="Low">
                                             Low
                                         </option>
@@ -514,15 +394,11 @@ const Maintenance = () => {
                                         <option value="High">
                                             High
                                         </option>
-
                                     </select>
-
                                 </div>
-
 
                                 {/* Description */}
                                 <div className="md:col-span-2">
-
                                     <label className="mb-2 block text-sm font-medium text-slate-700">
                                         Problem Description
                                     </label>
@@ -536,11 +412,9 @@ const Maintenance = () => {
                                         placeholder="Describe the problem..."
                                         className="w-full resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                     />
-
                                 </div>
 
                             </div>
-
 
                             {/* Message */}
                             {message && (
@@ -554,7 +428,6 @@ const Maintenance = () => {
                                     {message}
                                 </div>
                             )}
-
 
                             {/* Submit */}
                             <div className="mt-6 flex justify-end">
@@ -574,9 +447,7 @@ const Maintenance = () => {
                             </div>
 
                         </form>
-
                     </div>
-
 
                     {/* Request History */}
                     <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -592,7 +463,6 @@ const Maintenance = () => {
                             </p>
 
                         </div>
-
 
                         <div className="divide-y divide-slate-100">
 
@@ -660,7 +530,6 @@ const Maintenance = () => {
 
                                             </div>
 
-
                                             {/* Status */}
                                             <div className="flex flex-wrap items-center gap-3">
 
@@ -677,7 +546,6 @@ const Maintenance = () => {
                                                 >
                                                     {request.priority} Priority
                                                 </span>
-
 
                                                 <span
                                                     className={`rounded-full px-3 py-1 text-xs font-medium ${

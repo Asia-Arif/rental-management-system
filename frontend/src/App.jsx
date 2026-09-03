@@ -21,7 +21,7 @@ import TenantPayments from "./pages/tenant/Payments";
 import TenantMaintenance from "./pages/tenant/Maintenance";
 import TenantNotifications from "./pages/tenant/Notifications";
 import TenantDocuments from "./pages/tenant/Documents";
-import TenantReceipts from "./pages/tenant/Receipts";
+// import TenantReceipts from "./pages/tenant/Receipts";
 
 function App() {
   return (
@@ -119,10 +119,10 @@ function App() {
           element={<TenantDocuments />}
         />
 
-        <Route
+        {/* <Route
           path="/tenant/receipts"
           element={<TenantReceipts />}
-        />
+        /> */}
 
         {/* Default Route - ALWAYS LAST */}
         <Route

@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Sidebar from "../../components/Sidebar";
 import {
-    FiBarChart2,
     FiHome,
     FiPlus,
-    FiUsers,
-    FiDollarSign,
-    FiTool,
     FiBell,
-    FiFileText,
     FiMapPin,
     FiSearch,
     FiTrash2,
@@ -148,94 +144,8 @@ const Properties = () => {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
-
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">RentEase</h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Owner Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        <button
-                            onClick={() => navigate("/owner/dashboard")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiBarChart2 />
-                            <span>Dashboard</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/properties")}
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <FiHome />
-                            <span>Properties</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/add-property")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiPlus />
-                            <span>Add Property</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/tenants")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiUsers />
-                            <span>Tenants</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/rent-payments")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiDollarSign />
-                            <span>Rent Payments</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/maintenance")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiTool />
-                            <span>Maintenance</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/notifications")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiBell />
-                            <span>Notifications</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/documents")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiFileText />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
+            {/* Reusable Owner Sidebar */}
+            <Sidebar role="owner" />
 
             {/* Main */}
             <div className="ml-64">
@@ -258,7 +168,9 @@ const Properties = () => {
                         <div className="flex items-center gap-4">
 
                             <button
-                                onClick={() => navigate("/owner/notifications")}
+                                onClick={() =>
+                                    navigate("/owner/notifications")
+                                }
                                 className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
                                 <FiBell />
@@ -303,7 +215,9 @@ const Properties = () => {
                         </div>
 
                         <button
-                            onClick={() => navigate("/owner/add-property")}
+                            onClick={() =>
+                                navigate("/owner/add-property")
+                            }
                             className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                         >
                             <span className="inline-flex items-center gap-2">
@@ -360,7 +274,9 @@ const Properties = () => {
                                 type="text"
                                 placeholder="Search property or location..."
                                 value={search}
-                                onChange={(e) => setSearch(e.target.value)}
+                                onChange={(e) =>
+                                    setSearch(e.target.value)
+                                }
                                 className="w-full rounded-lg border border-slate-200 px-4 py-3 pl-10 text-sm outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                             />
 
@@ -368,12 +284,22 @@ const Properties = () => {
 
                         <select
                             value={filter}
-                            onChange={(e) => setFilter(e.target.value)}
+                            onChange={(e) =>
+                                setFilter(e.target.value)
+                            }
                             className="rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500"
                         >
-                            <option value="All">All Properties</option>
-                            <option value="Occupied">Occupied</option>
-                            <option value="Vacant">Vacant</option>
+                            <option value="All">
+                                All Properties
+                            </option>
+
+                            <option value="Occupied">
+                                Occupied
+                            </option>
+
+                            <option value="Vacant">
+                                Vacant
+                            </option>
                         </select>
 
                     </div>
@@ -483,7 +409,9 @@ const Properties = () => {
                                                 </p>
 
                                                 <p className="mt-1 text-lg font-bold text-slate-800">
-                                                    {formatAmount(property.rent)}
+                                                    {formatAmount(
+                                                        property.rent
+                                                    )}
                                                 </p>
 
                                             </div>
@@ -495,7 +423,8 @@ const Properties = () => {
                                                 </p>
 
                                                 <p className="mt-1 text-sm font-medium text-slate-700">
-                                                    {property.tenant?.name || "No Tenant"}
+                                                    {property.tenant?.name ||
+                                                        "No Tenant"}
                                                 </p>
 
                                             </div>
@@ -529,7 +458,9 @@ const Properties = () => {
 
                                             <button
                                                 onClick={() =>
-                                                    handleDelete(property._id)
+                                                    handleDelete(
+                                                        property._id
+                                                    )
                                                 }
                                                 className="rounded-lg bg-red-50 px-3 py-2.5 text-red-600 hover:bg-red-100"
                                                 title="Delete Property"

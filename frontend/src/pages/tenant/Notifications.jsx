@@ -1,17 +1,16 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+
 import {
-    BarChart3,
-    Home,
-    House,
-    Wallet,
-    Wrench,
-    Bell,
-    FileText,
-    CheckCircle,
-    Trash2,
-    Check,
-} from "lucide-react";
+    FiDollarSign,
+    FiTool,
+    FiBell,
+    FiCheckCircle,
+    FiTrash2,
+    FiCheck,
+} from "react-icons/fi";
+
+import Sidebar from "../../components/Sidebar";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -70,7 +69,6 @@ const Notifications = () => {
         fetchNotifications();
     }, [navigate]);
 
-
     // Mark single notification as read
     const markAsRead = async (id) => {
         try {
@@ -97,7 +95,8 @@ const Notifications = () => {
 
             if (!response.ok) {
                 throw new Error(
-                    data.message || "Failed to mark notification as read"
+                    data.message ||
+                        "Failed to mark notification as read"
                 );
             }
 
@@ -125,7 +124,6 @@ const Notifications = () => {
             setMarkingId(null);
         }
     };
-
 
     // Mark all notifications as read
     const markAllAsRead = async () => {
@@ -179,7 +177,6 @@ const Notifications = () => {
         }
     };
 
-
     // Delete notification permanently from database
     const deleteNotification = async (id) => {
         try {
@@ -206,14 +203,16 @@ const Notifications = () => {
 
             if (!response.ok) {
                 throw new Error(
-                    data.message || "Failed to delete notification"
+                    data.message ||
+                        "Failed to delete notification"
                 );
             }
 
-            // Remove notification from UI after successful database deletion
+            // Remove notification from UI
             setNotifications((previousNotifications) =>
                 previousNotifications.filter(
-                    (notification) => notification._id !== id
+                    (notification) =>
+                        notification._id !== id
                 )
             );
         } catch (error) {
@@ -231,30 +230,27 @@ const Notifications = () => {
         }
     };
 
-
     // Unread count
     const unreadCount = notifications.filter(
         (notification) => !notification.read
     ).length;
 
-
     // Notification icon
     const getIcon = (type) => {
         if (type === "Payment") {
-            return <Wallet size={22} />;
+            return <FiDollarSign size={22} />;
         }
 
         if (type === "Maintenance") {
-            return <Wrench size={22} />;
+            return <FiTool size={22} />;
         }
 
         if (type === "Reminder") {
-            return <CheckCircle size={22} />;
+            return <FiCheckCircle size={22} />;
         }
 
-        return <Bell size={22} />;
+        return <FiBell size={22} />;
     };
-
 
     // Notification icon background
     const getIconBackground = (type) => {
@@ -273,23 +269,18 @@ const Notifications = () => {
         return "bg-slate-100";
     };
 
-
     // Format date
     const formatDate = (date) => {
         if (!date) {
             return "-";
         }
 
-        return new Date(date).toLocaleDateString(
-            "en-GB",
-            {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-            }
-        );
+        return new Date(date).toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+        });
     };
-
 
     // Format time
     const formatTime = (date) => {
@@ -297,135 +288,17 @@ const Notifications = () => {
             return "-";
         }
 
-        return new Date(date).toLocaleTimeString(
-            "en-US",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-            }
-        );
+        return new Date(date).toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+        });
     };
-
 
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white shadow-xl">
-
-                {/* Logo */}
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-
-                {/* Navigation */}
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Tenant Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        {/* Dashboard */}
-                        <button
-                            onClick={() =>
-                                navigate("/tenant/dashboard")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <BarChart3 size={20} />
-                            <span>Dashboard</span>
-                        </button>
-
-
-                        {/* Join Property */}
-                        <button
-                            onClick={() =>
-                                navigate("/tenant/join-property")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Home size={20} />
-                            <span>Join Property</span>
-                        </button>
-
-
-                        {/* My Property */}
-                        <button
-                            onClick={() =>
-                                navigate("/tenant/my-property")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <House size={20} />
-                            <span>My Property</span>
-                        </button>
-
-
-                        {/* Rent Payment */}
-                        <button
-                            onClick={() =>
-                                navigate("/tenant/rent-payment")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Wallet size={20} />
-                            <span>Rent Payment</span>
-                        </button>
-
-
-                        {/* Maintenance */}
-                        <button
-                            onClick={() =>
-                                navigate("/tenant/maintenance")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Wrench size={20} />
-                            <span>Maintenance</span>
-                        </button>
-
-
-                        {/* Active Notifications */}
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <Bell size={20} />
-                            <span>Notifications</span>
-
-                            {unreadCount > 0 && (
-                                <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
-                                    {unreadCount}
-                                </span>
-                            )}
-                        </button>
-
-
-                        {/* Documents */}
-                        <button
-                            onClick={() =>
-                                navigate("/tenant/documents")
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FileText size={20} />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
-
+            {/* Common Sidebar */}
+            <Sidebar role="tenant" />
 
             {/* Main Content */}
             <div className="ml-64">
@@ -445,30 +318,29 @@ const Notifications = () => {
                             </p>
                         </div>
 
-
                         <div className="flex items-center gap-4">
 
                             {/* Notification Icon */}
                             <div className="relative rounded-full p-2 text-slate-600">
-                                <Bell size={20} />
+                                <FiBell size={20} />
 
                                 {unreadCount > 0 && (
                                     <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
                                 )}
                             </div>
 
-
                             {/* Profile */}
                             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
                                 T
                             </div>
 
-
                             {/* Logout */}
                             <button
-                                onClick={() =>
-                                    navigate("/login")
-                                }
+                                onClick={() => {
+                                    localStorage.removeItem("token");
+                                    localStorage.removeItem("user");
+                                    navigate("/login");
+                                }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -477,7 +349,6 @@ const Notifications = () => {
                         </div>
                     </div>
                 </header>
-
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
@@ -496,7 +367,6 @@ const Notifications = () => {
                             </p>
                         </div>
 
-
                         {unreadCount > 0 && (
                             <button
                                 onClick={markAllAsRead}
@@ -505,7 +375,7 @@ const Notifications = () => {
                             >
                                 <span className="inline-flex items-center gap-2">
 
-                                    <Check size={16} />
+                                    <FiCheck size={16} />
 
                                     {markingAll
                                         ? "Updating..."
@@ -517,16 +387,16 @@ const Notifications = () => {
 
                     </div>
 
-
                     {/* Loading */}
                     {loading && (
                         <div className="overflow-hidden rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+
                             <p className="text-sm text-slate-500">
                                 Loading notifications...
                             </p>
+
                         </div>
                     )}
-
 
                     {/* Error */}
                     {!loading && error && (
@@ -534,7 +404,6 @@ const Notifications = () => {
                             {error}
                         </div>
                     )}
-
 
                     {/* Notification List */}
                     {!loading && !error && (
@@ -547,17 +416,19 @@ const Notifications = () => {
                                 </h2>
 
                                 <p className="mt-1 text-xs text-slate-500">
-                                    Important updates about your property and payments.
+                                    Important updates about your property
+                                    and payments.
                                 </p>
 
                             </div>
 
-
                             {notifications.length > 0 ? (
+
                                 <div className="divide-y divide-slate-100">
 
                                     {notifications.map(
                                         (notification) => (
+
                                             <div
                                                 key={notification._id}
                                                 className={`p-6 transition hover:bg-slate-50 ${
@@ -580,7 +451,6 @@ const Notifications = () => {
                                                         )}
                                                     </div>
 
-
                                                     {/* Content */}
                                                     <div className="min-w-0 flex-1">
 
@@ -602,7 +472,6 @@ const Notifications = () => {
                                                                         }
                                                                     </h3>
 
-
                                                                     {!notification.read && (
                                                                         <span className="rounded-full bg-blue-100 px-2 py-1 text-[10px] font-semibold text-blue-700">
                                                                             NEW
@@ -611,7 +480,6 @@ const Notifications = () => {
 
                                                                 </div>
 
-
                                                                 <p className="mt-2 text-sm leading-6 text-slate-500">
                                                                     {
                                                                         notification.message
@@ -619,7 +487,6 @@ const Notifications = () => {
                                                                 </p>
 
                                                             </div>
-
 
                                                             {/* Date */}
                                                             <div className="shrink-0 text-left sm:text-right">
@@ -640,7 +507,6 @@ const Notifications = () => {
 
                                                         </div>
 
-
                                                         {/* Actions */}
                                                         <div className="mt-4 flex flex-wrap gap-3">
 
@@ -660,7 +526,7 @@ const Notifications = () => {
                                                                 >
                                                                     <span className="inline-flex items-center gap-2">
 
-                                                                        <Check size={14} />
+                                                                        <FiCheck size={14} />
 
                                                                         {markingId ===
                                                                         notification._id
@@ -670,7 +536,6 @@ const Notifications = () => {
                                                                     </span>
                                                                 </button>
                                                             )}
-
 
                                                             {/* Delete */}
                                                             <button
@@ -687,7 +552,7 @@ const Notifications = () => {
                                                             >
                                                                 <span className="inline-flex items-center gap-2">
 
-                                                                    <Trash2 size={14} />
+                                                                    <FiTrash2 size={14} />
 
                                                                     {deletingId ===
                                                                     notification._id
@@ -704,17 +569,19 @@ const Notifications = () => {
                                                 </div>
 
                                             </div>
+
                                         )
                                     )}
 
                                 </div>
+
                             ) : (
 
                                 /* Empty State */
                                 <div className="p-16 text-center">
 
                                     <div className="flex justify-center">
-                                        <Bell size={60} />
+                                        <FiBell size={60} />
                                     </div>
 
                                     <h3 className="mt-5 text-lg font-semibold text-slate-800">
@@ -722,8 +589,8 @@ const Notifications = () => {
                                     </h3>
 
                                     <p className="mt-2 text-sm text-slate-500">
-                                        You're all caught up! New notifications will
-                                        appear here.
+                                        You're all caught up! New notifications
+                                        will appear here.
                                     </p>
 
                                 </div>

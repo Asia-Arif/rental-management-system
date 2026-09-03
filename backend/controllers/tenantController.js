@@ -174,6 +174,8 @@ RentEase`,
         // ------------------------------------------
         property.tenantEmail = tenantEmail;
         property.inviteCode = inviteCode;
+
+        // Due date will be created when tenant joins
         property.rentDueDate = null;
 
         const savedProperty = await property.save();
@@ -303,23 +305,69 @@ const acceptInvite = async (req, res) => {
             });
         }
 
-        // ------------------------------------------
-        // Calculate first rent due date
-        // ------------------------------------------
+        // ==========================================
+        // CALCULATE FIRST RENT DUE DATE
+        // ==========================================
+        // Tenant joins today.
+        // Example:
+        // Join: 03 September
+        // Due: 03 October
+        //
+        // If next month does not have the same date:
+        // Join: 31 January
+        // Due: 28 February (or 29 in leap year)
+        // ==========================================
+
         const joinedDate = new Date();
 
-        const dueDate = new Date(
-            joinedDate.getFullYear(),
-            joinedDate.getMonth() + 1,
-            joinedDate.getDate()
+        const joinedYear = joinedDate.getFullYear();
+        const joinedMonth = joinedDate.getMonth();
+        const joinedDay = joinedDate.getDate();
+
+        // First day of next month
+        const nextMonthFirstDay = new Date(
+            joinedYear,
+            joinedMonth + 1,
+            1
         );
 
-        // ------------------------------------------
-        // Link tenant
-        // ------------------------------------------
+        const nextMonthYear =
+            nextMonthFirstDay.getFullYear();
+
+        const nextMonth =
+            nextMonthFirstDay.getMonth();
+
+        // Get last day of next month
+        const lastDayOfNextMonth = new Date(
+            nextMonthYear,
+            nextMonth + 1,
+            0
+        ).getDate();
+
+        // Make sure date exists in next month
+        const validDueDay = Math.min(
+            joinedDay,
+            lastDayOfNextMonth
+        );
+
+        const dueDate = new Date(
+            nextMonthYear,
+            nextMonth,
+            validDueDay
+        );
+
+        // ==========================================
+        // LINK TENANT WITH PROPERTY
+        // ==========================================
         property.tenant = tenant._id;
+
         property.status = "Occupied";
+
         property.rentDueDate = dueDate;
+
+        // Reset reminder tracking
+        property.lastRentReminderDate = null;
+        property.lastRentReminderType = null;
 
         // Clear invite data after successful joining
         property.inviteCode = null;
@@ -331,7 +379,14 @@ const acceptInvite = async (req, res) => {
         console.log("Property joined successfully!");
         console.log("Property ID:", property._id);
         console.log("Tenant ID:", tenant._id);
-        console.log("Due Date:", dueDate);
+        console.log(
+            "Tenant Joined Date:",
+            joinedDate
+        );
+        console.log(
+            "First Rent Due Date:",
+            dueDate
+        );
         console.log("==========================================");
 
         return res.status(200).json({
@@ -349,12 +404,17 @@ const acceptInvite = async (req, res) => {
                 status: property.status,
 
                 dueDate: property.rentDueDate
-                    ? property.rentDueDate.toISOString().split("T")[0]
+                    ? property.rentDueDate
+                        .toISOString()
+                        .split("T")[0]
                     : null,
             },
         });
     } catch (error) {
-        console.error("Accept invite error:", error);
+        console.error(
+            "Accept invite error:",
+            error
+        );
 
         return res.status(500).json({
             message: "Failed to join property",
@@ -396,7 +456,9 @@ const getMyProperty = async (req, res) => {
                 status: property.status,
 
                 dueDate: property.rentDueDate
-                    ? property.rentDueDate.toISOString().split("T")[0]
+                    ? property.rentDueDate
+                        .toISOString()
+                        .split("T")[0]
                     : null,
 
                 owner: property.owner

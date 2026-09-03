@@ -1,15 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-    BarChart3,
-    House,
-    Plus,
-    Users,
-    CircleDollarSign,
-    Wrench,
-    Bell,
-    FileText,
-} from "lucide-react";
+import { Bell } from "lucide-react";
+import Sidebar from "../../components/Sidebar";
 
 const AddProperty = () => {
     const navigate = useNavigate();
@@ -92,96 +84,8 @@ const AddProperty = () => {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white">
-
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Owner Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        <button
-                            onClick={() => navigate("/owner/dashboard")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <BarChart3 />
-                            <span>Dashboard</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/properties")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <House />
-                            <span>Properties</span>
-                        </button>
-
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <Plus />
-                            <span>Add Property</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/tenants")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Users />
-                            <span>Tenants</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/payments")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <CircleDollarSign />
-                            <span>Rent Payments</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/maintenance")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Wrench />
-                            <span>Maintenance</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/notifications")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <Bell />
-                            <span>Notifications</span>
-                        </button>
-
-                        <button
-                            onClick={() => navigate("/owner/documents")}
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 hover:bg-slate-800 hover:text-white"
-                        >
-                            <FileText />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-
-                </nav>
-            </aside>
+            {/* Common Owner Sidebar */}
+            <Sidebar role="owner" />
 
             {/* Main Content */}
             <div className="ml-64">
@@ -322,7 +226,6 @@ const AddProperty = () => {
                                             <option value="Other">
                                                 Other
                                             </option>
-
                                         </select>
                                     </div>
 
@@ -473,7 +376,9 @@ const AddProperty = () => {
                                     disabled={loading}
                                     className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
                                 >
-                                    {loading ? "Adding Property..." : "Add Property"}
+                                    {loading
+                                        ? "Adding Property..."
+                                        : "Add Property"}
                                 </button>
 
                             </div>

@@ -2,17 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     BarChart3,
-    House,
-    Plus,
-    Users,
     CircleDollarSign,
-    Wrench,
     Bell,
-    FileText,
     Clock3,
     TriangleAlert,
     Search,
 } from "lucide-react";
+import Sidebar from "../../components/Sidebar";
 
 const Payments = () => {
     const navigate = useNavigate();
@@ -108,7 +104,6 @@ const Payments = () => {
                 );
             }
 
-            // Update payment immediately on screen
             setPayments((previousPayments) =>
                 previousPayments.map((payment) =>
                     payment._id === paymentId
@@ -186,7 +181,6 @@ const Payments = () => {
                 );
             }
 
-            // Update payment immediately on screen
             setPayments((previousPayments) =>
                 previousPayments.map((payment) =>
                     payment._id === paymentId
@@ -313,131 +307,8 @@ const Payments = () => {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white shadow-xl">
-
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Owner Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/dashboard"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <BarChart3 size={20} />
-                            <span>Dashboard</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/properties"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <House size={20} />
-                            <span>Properties</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/add-property"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Plus size={20} />
-                            <span>Add Property</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/tenants"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Users size={20} />
-                            <span>Tenants</span>
-                        </button>
-
-                        {/* Active - Rent Payments */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/payments"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <CircleDollarSign
-                                size={20}
-                            />
-                            <span>Rent Payments</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/maintenance"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Wrench size={20} />
-                            <span>Maintenance</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/notifications"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <Bell size={20} />
-                            <span>Notifications</span>
-                        </button>
-
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/owner/documents"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FileText size={20} />
-                            <span>Documents</span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
+            {/* Common Owner Sidebar */}
+            <Sidebar role="owner" />
 
             {/* Main Content */}
             <div className="ml-64">
@@ -882,8 +753,7 @@ const Payments = () => {
                                                             {/* Proof */}
                                                             <td className="px-6 py-5">
 
-                                                                {
-                                                                payment.screenshot ? (
+                                                                {payment.screenshot ? (
                                                                     <a
                                                                         href={
                                                                             payment.screenshot

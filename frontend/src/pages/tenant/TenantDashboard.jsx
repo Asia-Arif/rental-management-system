@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-    FiGrid,
     FiHome,
     FiDollarSign,
     FiTool,
@@ -11,6 +10,8 @@ import {
     FiCalendar,
     FiSmile,
 } from "react-icons/fi";
+
+import Sidebar from "../../components/Sidebar";
 
 const TenantDashboard = () => {
     const navigate = useNavigate();
@@ -453,145 +454,8 @@ const TenantDashboard = () => {
     return (
         <div className="min-h-screen bg-slate-50">
 
-            {/* Sidebar */}
-            <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 text-white shadow-xl">
-
-                {/* Logo */}
-                <div className="flex h-20 items-center border-b border-slate-700 px-6">
-                    <div>
-                        <h1 className="text-xl font-bold">
-                            RentEase
-                        </h1>
-
-                        <p className="text-xs text-slate-400">
-                            Property Management
-                        </p>
-                    </div>
-                </div>
-
-                {/* Navigation */}
-                <nav className="px-4 py-6">
-
-                    <p className="mb-3 px-3 text-xs font-semibold uppercase tracking-wider text-slate-500">
-                        Tenant Menu
-                    </p>
-
-                    <div className="space-y-2">
-
-                        {/* Dashboard */}
-                        <button
-                            className="flex w-full items-center gap-3 rounded-lg bg-blue-600 px-4 py-3 text-left text-sm font-medium text-white"
-                        >
-                            <FiGrid />
-                            <span>
-                                Dashboard
-                            </span>
-                        </button>
-
-                        {/* Join Property */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/tenant/join-property"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiHome />
-                            <span>
-                                Join Property
-                            </span>
-                        </button>
-
-                        {/* My Property */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/tenant/my-property"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiHome />
-                            <span>
-                                My Property
-                            </span>
-                        </button>
-
-                        {/* Rent Payment */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/tenant/rent-payment"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiDollarSign />
-                            <span>
-                                Rent Payment
-                            </span>
-                        </button>
-
-                        {/* Maintenance */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/tenant/maintenance"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiTool />
-                            <span>
-                                Maintenance
-                            </span>
-                        </button>
-
-                        {/* Notifications */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/tenant/notifications"
-                                )
-                            }
-                            className="relative flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiBell />
-
-                            <span>
-                                Notifications
-                            </span>
-
-                            {unreadNotifications >
-                                0 && (
-                                <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
-                                    {
-                                        unreadNotifications
-                                    }
-                                </span>
-                            )}
-                        </button>
-
-                        {/* Documents */}
-                        <button
-                            onClick={() =>
-                                navigate(
-                                    "/tenant/documents"
-                                )
-                            }
-                            className="flex w-full items-center gap-3 rounded-lg px-4 py-3 text-left text-sm text-slate-300 transition hover:bg-slate-800 hover:text-white"
-                        >
-                            <FiFileText />
-
-                            <span>
-                                Documents
-                            </span>
-                        </button>
-
-                    </div>
-                </nav>
-            </aside>
+            {/* COMMON SIDEBAR */}
+            <Sidebar role="tenant" />
 
             {/* Main Content */}
             <div className="ml-64">
@@ -898,6 +762,7 @@ const TenantDashboard = () => {
                                 >
                                     <div className="flex items-center gap-3">
                                         <FiDollarSign />
+
                                         <span>
                                             Pay Rent
                                         </span>
