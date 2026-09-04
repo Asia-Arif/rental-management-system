@@ -22,6 +22,8 @@ const Notifications = () => {
     const [markingAll, setMarkingAll] = useState(false);
     const [deletingId, setDeletingId] = useState(null);
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // Get notifications from backend
     useEffect(() => {
         const fetchNotifications = async () => {
@@ -37,7 +39,7 @@ const Notifications = () => {
                 }
 
                 const response = await fetch(
-                    "http://localhost:5000/api/notifications",
+                    `${API_URL}/notifications`,
                     {
                         method: "GET",
                         headers: {
@@ -82,7 +84,7 @@ const Notifications = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/notifications/${id}/read`,
+                `${API_URL}/notifications/${id}/read`,
                 {
                     method: "PUT",
                     headers: {
@@ -138,7 +140,7 @@ const Notifications = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/notifications/read-all",
+                `${API_URL}/notifications/read-all`,
                 {
                     method: "PUT",
                     headers: {
@@ -190,7 +192,7 @@ const Notifications = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/notifications/${id}`,
+                `${API_URL}/notifications/${id}`,
                 {
                     method: "DELETE",
                     headers: {

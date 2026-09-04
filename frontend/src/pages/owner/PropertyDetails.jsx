@@ -12,6 +12,8 @@ const PropertyDetails = () => {
     const navigate = useNavigate();
     const { id } = useParams();
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -27,7 +29,7 @@ const PropertyDetails = () => {
                 }
 
                 const response = await fetch(
-                    `http://localhost:5000/api/properties/${id}`,
+                    `${API_URL}/properties/${id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,

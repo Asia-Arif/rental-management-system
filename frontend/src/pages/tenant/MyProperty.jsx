@@ -21,6 +21,8 @@ const MyProperty = () => {
     const [leaveMessage, setLeaveMessage] = useState("");
     const [leaveError, setLeaveError] = useState("");
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // Get logged-in tenant's property
     const fetchMyProperty = async () => {
         try {
@@ -35,7 +37,7 @@ const MyProperty = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/tenants/my-property",
+                `${API_URL}/tenants/my-property`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -101,7 +103,7 @@ const MyProperty = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/tenants/leave-request",
+                `${API_URL}/tenants/leave-request`,
                 {
                     method: "POST",
                     headers: {

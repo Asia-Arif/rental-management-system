@@ -10,6 +10,8 @@ import {
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Payments = () => {
     const navigate = useNavigate();
 
@@ -37,7 +39,7 @@ const Payments = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/payments",
+                `${API_URL}/payments`,
                 {
                     method: "GET",
                     headers: {
@@ -87,7 +89,7 @@ const Payments = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/payments/${paymentId}/approve`,
+                `${API_URL}/payments/${paymentId}/approve`,
                 {
                     method: "PUT",
                     headers: {
@@ -158,7 +160,7 @@ const Payments = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/payments/${paymentId}/reject`,
+                `${API_URL}/payments/${paymentId}/reject`,
                 {
                     method: "PUT",
                     headers: {

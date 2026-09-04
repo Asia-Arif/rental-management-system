@@ -13,6 +13,8 @@ import {
 const Properties = () => {
     const navigate = useNavigate();
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const [search, setSearch] = useState("");
     const [filter, setFilter] = useState("All");
     const [properties, setProperties] = useState([]);
@@ -30,7 +32,7 @@ const Properties = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/properties",
+                `${API_URL}/properties`,
                 {
                     method: "GET",
                     headers: {
@@ -79,7 +81,7 @@ const Properties = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/properties/${propertyId}`,
+                `${API_URL}/properties/${propertyId}`,
                 {
                     method: "DELETE",
                     headers: {

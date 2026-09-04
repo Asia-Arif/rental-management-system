@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
+
 import {
     House,
     Bell,
@@ -9,10 +11,9 @@ import {
     Eye,
     FilePenLine,
 } from "lucide-react";
-
 import Sidebar from "../../components/Sidebar";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const documentTypes = [
     {
@@ -349,6 +350,7 @@ const Documents = () => {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+
         navigate("/login");
     };
 
@@ -412,7 +414,6 @@ const Documents = () => {
                     </div>
 
                     {/* MESSAGES */}
-
                     {message && (
                         <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                             {message}
@@ -426,7 +427,6 @@ const Documents = () => {
                     )}
 
                     {/* DOCUMENT CARDS */}
-
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         {documentTypes.map(
                             ({
@@ -455,7 +455,6 @@ const Documents = () => {
                                         className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
                                     >
                                         {/* TITLE */}
-
                                         <div className="flex items-center gap-4">
                                             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
                                                 <Icon
@@ -475,7 +474,6 @@ const Documents = () => {
                                         </div>
 
                                         {/* STATUS */}
-
                                         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
                                             {doc ? (
                                                 <>
@@ -498,7 +496,6 @@ const Documents = () => {
                                                     </div>
 
                                                     {/* VIEW / DOWNLOAD */}
-
                                                     <div className="mt-4 flex gap-2">
                                                         <button
                                                             type="button"
@@ -561,7 +558,6 @@ const Documents = () => {
                                         </div>
 
                                         {/* UPLOAD */}
-
                                         <label className="mt-5 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700">
                                             <Upload size={18} />
 

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const EditProperty = () => {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -31,7 +33,7 @@ const EditProperty = () => {
                 }
 
                 const response = await fetch(
-                    `http://localhost:5000/api/properties/${id}`,
+                    `${API_URL}/properties/${id}`,
                     {
                         headers: {
                             Authorization: `Bearer ${token}`,
@@ -92,7 +94,7 @@ const EditProperty = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/properties/${id}`,
+                `${API_URL}/properties/${id}`,
                 {
                     method: "PUT",
                     headers: {

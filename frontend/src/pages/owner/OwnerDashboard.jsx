@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
@@ -11,7 +10,7 @@ import {
     FaClock,
 } from "react-icons/fa";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const OwnerDashboard = () => {
     const navigate = useNavigate();
@@ -1073,4 +1072,3 @@ const OwnerDashboard = () => {
 };
 
 export default OwnerDashboard;
-

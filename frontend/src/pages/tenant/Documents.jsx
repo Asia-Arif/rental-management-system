@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -10,24 +11,21 @@ import {
 
 import Sidebar from "../../components/Sidebar";
 
-const API_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Documents = () => {
     const navigate = useNavigate();
 
     const [documents, setDocuments] = useState([]);
     const [property, setProperty] = useState(null);
-
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
     const [viewingId, setViewingId] = useState(null);
     const [downloadingId, setDownloadingId] = useState(null);
 
     // ============================================
     // FETCH TENANT DOCUMENTS
     // ============================================
-
     const fetchDocuments = async () => {
         try {
             setLoading(true);
@@ -79,7 +77,6 @@ const Documents = () => {
     // ============================================
     // VIEW PDF
     // ============================================
-
     const handleView = async (doc) => {
         if (!doc?._id) {
             alert("Document is not available.");
@@ -157,7 +154,6 @@ const Documents = () => {
     // ============================================
     // DOWNLOAD PDF
     // ============================================
-
     const handleDownload = async (doc) => {
         if (!doc?._id) {
             alert("Document is not available.");
@@ -247,18 +243,15 @@ const Documents = () => {
     // ============================================
     // LOGOUT
     // ============================================
-
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
-
         navigate("/login");
     };
 
     // ============================================
     // PAGE
     // ============================================
-
     return (
         <div className="min-h-screen bg-slate-50">
 
@@ -315,7 +308,9 @@ const Documents = () => {
                             </button>
 
                         </div>
+
                     </div>
+
                 </header>
 
                 {/* PAGE CONTENT */}
@@ -420,6 +415,7 @@ const Documents = () => {
                                         downloadingId === doc._id;
 
                                     return (
+
                                         <div
                                             key={doc._id}
                                             className="rounded-xl border border-slate-200 bg-slate-50 p-6"
@@ -429,24 +425,32 @@ const Documents = () => {
                                             <div className="flex items-start gap-4">
 
                                                 <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+
                                                     <FiFileText
                                                         size={23}
                                                     />
+
                                                 </div>
 
                                                 <div className="min-w-0">
 
                                                     <h3 className="break-words font-semibold text-slate-800">
+
                                                         {doc.name ||
                                                             "Untitled Document"}
+
                                                     </h3>
 
                                                     <p className="mt-1 text-xs text-slate-500">
+
                                                         {doc.size ||
                                                             "Unknown size"}{" "}
+
                                                         •{" "}
+
                                                         {doc.date ||
                                                             "Unknown date"}
+
                                                     </p>
 
                                                 </div>
@@ -465,11 +469,13 @@ const Documents = () => {
                                                     disabled={isViewing}
                                                     className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-blue-600 transition hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
+
                                                     <FiEye size={17} />
 
                                                     {isViewing
                                                         ? "Opening..."
                                                         : "View"}
+
                                                 </button>
 
                                                 {/* DOWNLOAD */}
@@ -481,25 +487,31 @@ const Documents = () => {
                                                     disabled={isDownloading}
                                                     className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
                                                 >
+
                                                     <FiDownload size={17} />
 
                                                     {isDownloading
                                                         ? "Downloading..."
                                                         : "Download"}
+
                                                 </button>
 
                                             </div>
 
                                         </div>
+
                                     );
                                 })
                             )}
 
                         </div>
+
                     </div>
 
                 </main>
+
             </div>
+
         </div>
     );
 };

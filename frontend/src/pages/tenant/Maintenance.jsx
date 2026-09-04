@@ -9,6 +9,8 @@ import {
 
 import Sidebar from "../../components/Sidebar";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const Maintenance = () => {
     const navigate = useNavigate();
 
@@ -40,7 +42,7 @@ const Maintenance = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/maintenance/tenant",
+                `${API_URL}/maintenance/tenant`,
                 {
                     method: "GET",
                     headers: {
@@ -107,7 +109,7 @@ const Maintenance = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/maintenance",
+                `${API_URL}/maintenance`,
                 {
                     method: "POST",
                     headers: {

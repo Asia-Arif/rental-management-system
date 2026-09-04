@@ -10,6 +10,8 @@ const Login = () => {
 
     const navigate = useNavigate();
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const handleLogin = async (e) => {
         e.preventDefault();
 
@@ -18,7 +20,7 @@ const Login = () => {
 
         try {
             const response = await fetch(
-                'http://localhost:5000/api/auth/login',
+                `${API_URL}/auth/login`,
                 {
                     method: 'POST',
                     headers: {

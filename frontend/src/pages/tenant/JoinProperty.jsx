@@ -8,6 +8,8 @@ import {
 
 import Sidebar from "../../components/Sidebar";
 
+const API_URL = import.meta.env.VITE_API_URL;
+
 const JoinProperty = () => {
     const navigate = useNavigate();
 
@@ -41,7 +43,7 @@ const JoinProperty = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/tenants/accept-invite",
+                `${API_URL}/tenants/accept-invite`,
                 {
                     method: "POST",
                     headers: {

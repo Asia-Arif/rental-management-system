@@ -15,6 +15,8 @@ import Sidebar from "../../components/Sidebar";
 const Tenants = () => {
     const navigate = useNavigate();
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     const [search, setSearch] = useState("");
     const [tenants, setTenants] = useState([]);
     const [properties, setProperties] = useState([]);
@@ -59,7 +61,7 @@ const Tenants = () => {
 
             // Get tenants
             const tenantsResponse = await fetch(
-                "http://localhost:5000/api/tenants",
+                `${API_URL}/tenants`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -80,7 +82,7 @@ const Tenants = () => {
 
             // Get owner's properties
             const propertiesResponse = await fetch(
-                "http://localhost:5000/api/properties",
+                `${API_URL}/properties`,
                 {
                     headers: {
                         Authorization: `Bearer ${token}`,
@@ -195,7 +197,7 @@ const Tenants = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/tenants/invite",
+                `${API_URL}/tenants/invite`,
                 {
                     method: "POST",
                     headers: {
@@ -269,7 +271,7 @@ const Tenants = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/tenants/leave-request/${propertyId}/accept`,
+                `${API_URL}/tenants/leave-request/${propertyId}/accept`,
                 {
                     method: "PUT",
                     headers: {
@@ -334,7 +336,7 @@ const Tenants = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/tenants/leave-request/${propertyId}/reject`,
+                `${API_URL}/tenants/leave-request/${propertyId}/reject`,
                 {
                     method: "PUT",
                     headers: {
@@ -431,7 +433,7 @@ const Tenants = () => {
             }
 
             const response = await fetch(
-                "http://localhost:5000/api/tenants/vacate-notice",
+                `${API_URL}/tenants/vacate-notice`,
                 {
                     method: "POST",
                     headers: {

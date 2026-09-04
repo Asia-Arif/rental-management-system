@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -12,6 +11,8 @@ import {
 } from "lucide-react";
 
 import Sidebar from "../../components/Sidebar";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Maintenance = () => {
     const navigate = useNavigate();
@@ -38,7 +39,7 @@ const Maintenance = () => {
                 }
 
                 const response = await fetch(
-                    "http://localhost:5000/api/maintenance",
+                    `${API_URL}/maintenance`,
                     {
                         method: "GET",
                         headers: {
@@ -83,7 +84,7 @@ const Maintenance = () => {
             }
 
             const response = await fetch(
-                `http://localhost:5000/api/maintenance/${id}/status`,
+                `${API_URL}/maintenance/${id}/status`,
                 {
                     method: "PUT",
                     headers: {
@@ -698,4 +699,3 @@ const Maintenance = () => {
 };
 
 export default Maintenance;
-

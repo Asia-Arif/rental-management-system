@@ -23,6 +23,8 @@ const Payments = () => {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // Fetch tenant payments and linked property
     useEffect(() => {
         const fetchPaymentData = async () => {
@@ -43,7 +45,7 @@ const Payments = () => {
 
                 // Get tenant payments
                 const paymentsResponse = await fetch(
-                    "http://localhost:5000/api/payments/tenant",
+                    `${API_URL}/payments/tenant`,
                     {
                         method: "GET",
                         headers,
@@ -63,7 +65,7 @@ const Payments = () => {
 
                 // Get tenant linked property
                 const propertyResponse = await fetch(
-                    "http://localhost:5000/api/payments/tenant/property",
+                    `${API_URL}/payments/tenant/property`,
                     {
                         method: "GET",
                         headers,
@@ -194,7 +196,7 @@ const Payments = () => {
                 await convertToBase64(screenshot);
 
             const response = await fetch(
-                "http://localhost:5000/api/payments/submit",
+                `${API_URL}/payments/submit`,
                 {
                     method: "POST",
                     headers: {
@@ -538,8 +540,6 @@ const Payments = () => {
                                                 <option value="Bank Transfer">
                                                     Bank Transfer
                                                 </option>
-
-                                                
                                             </select>
                                         </div>
 

@@ -23,6 +23,8 @@ const TenantDashboard = () => {
 
     const [error, setError] = useState("");
 
+    const API_URL = import.meta.env.VITE_API_URL;
+
     // =====================================================
     // FETCH TENANT DASHBOARD DATA
     // =====================================================
@@ -47,7 +49,7 @@ const TenantDashboard = () => {
                 // =================================================
                 try {
                     const propertyResponse = await fetch(
-                        "http://localhost:5000/api/tenants/my-property",
+                        `${API_URL}/tenants/my-property`,
                         {
                             method: "GET",
                             headers,
@@ -97,7 +99,7 @@ const TenantDashboard = () => {
                 // =================================================
                 try {
                     const paymentsResponse = await fetch(
-                        "http://localhost:5000/api/payments/tenant",
+                        `${API_URL}/payments/tenant`,
                         {
                             method: "GET",
                             headers,
@@ -134,7 +136,7 @@ const TenantDashboard = () => {
                 try {
                     const notificationsResponse =
                         await fetch(
-                            "http://localhost:5000/api/notifications",
+                            `${API_URL}/notifications`,
                             {
                                 method: "GET",
                                 headers,
@@ -172,7 +174,7 @@ const TenantDashboard = () => {
                 try {
                     const maintenanceResponse =
                         await fetch(
-                            "http://localhost:5000/api/maintenance/tenant",
+                            `${API_URL}/maintenance/tenant`,
                             {
                                 method: "GET",
                                 headers,
