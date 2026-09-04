@@ -1,5 +1,6 @@
 const Property = require("../models/Property");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { BrevoClient } = require("@getbrevo/brevo");
 
 // ==========================================
@@ -20,6 +21,7 @@ const getOwnerTenants = async (req, res) => {
                 email: property.tenant.email,
                 phone: property.tenant.phone || "Not provided",
                 property: property.name,
+                propertyId: property._id,
                 rent: property.rent,
 
                 dueDate: property.rentDueDate
@@ -30,6 +32,19 @@ const getOwnerTenants = async (req, res) => {
                     property.status === "Occupied"
                         ? "Active"
                         : "Inactive",
+
+                leaveRequest: property.leaveRequest || null,
+                leaveRequestDate: property.leaveRequestDate
+                    ? property.leaveRequestDate
+                        .toISOString()
+                        .split("T")[0]
+                    : null,
+
+                vacateDate: property.vacateDate
+                    ? property.vacateDate
+                        .toISOString()
+                        .split("T")[0]
+                    : null,
             }));
 
         res.status(200).json({
@@ -51,9 +66,6 @@ const inviteTenant = async (req, res) => {
     try {
         const { email, propertyId } = req.body;
 
-        // ------------------------------------------
-        // Validate required fields
-        // ------------------------------------------
         if (!email || !propertyId) {
             return res.status(400).json({
                 message: "Tenant email and property are required",
@@ -62,9 +74,6 @@ const inviteTenant = async (req, res) => {
 
         const tenantEmail = email.trim().toLowerCase();
 
-        // ------------------------------------------
-        // Find property belonging to owner
-        // ------------------------------------------
         const property = await Property.findOne({
             _id: propertyId,
             owner: req.user.id,
@@ -77,18 +86,12 @@ const inviteTenant = async (req, res) => {
             });
         }
 
-        // ------------------------------------------
-        // Check property already occupied
-        // ------------------------------------------
         if (property.tenant) {
             return res.status(400).json({
                 message: "This property already has a tenant",
             });
         }
 
-        // ------------------------------------------
-        // Check Brevo configuration
-        // ------------------------------------------
         if (!process.env.BREVO_API_KEY) {
             console.error("BREVO_API_KEY is missing in .env");
 
@@ -107,9 +110,6 @@ const inviteTenant = async (req, res) => {
             });
         }
 
-        // ------------------------------------------
-        // Generate 6-digit invite code
-        // ------------------------------------------
         const inviteCode = Math.floor(
             100000 + Math.random() * 900000
         ).toString();
@@ -120,16 +120,10 @@ const inviteTenant = async (req, res) => {
         console.log("Tenant Email:", tenantEmail);
         console.log("==========================================");
 
-        // ------------------------------------------
-        // Create Brevo client
-        // ------------------------------------------
         const brevo = new BrevoClient({
             apiKey: process.env.BREVO_API_KEY,
         });
 
-        // ------------------------------------------
-        // Send email
-        // ------------------------------------------
         const result =
             await brevo.transactionalEmails.sendTransacEmail({
                 sender: {
@@ -169,14 +163,16 @@ RentEase`,
             result?.messageId || "No message ID returned"
         );
 
-        // ------------------------------------------
-        // SAVE INVITE CODE IN DATABASE
-        // ------------------------------------------
         property.tenantEmail = tenantEmail;
         property.inviteCode = inviteCode;
 
-        // Due date will be created when tenant joins
         property.rentDueDate = null;
+
+        // Reset old leave/vacate information
+        property.leaveRequest = null;
+        property.leaveRequestDate = null;
+        property.vacateDate = null;
+        property.vacateNoticeSent = false;
 
         const savedProperty = await property.save();
 
@@ -187,9 +183,6 @@ RentEase`,
         console.log("Saved Tenant Email:", savedProperty.tenantEmail);
         console.log("==========================================");
 
-        // ------------------------------------------
-        // Success response
-        // ------------------------------------------
         return res.status(200).json({
             message:
                 "Invite sent successfully! Please ask the tenant to check their email.",
@@ -197,32 +190,18 @@ RentEase`,
             inviteCode: savedProperty.inviteCode,
         });
     } catch (error) {
-        console.error(
-            "=========================================="
-        );
-
-        console.error(
-            "Invite tenant / Brevo email error"
-        );
-
-        console.error(
-            "Error message:",
-            error?.message || error
-        );
-
+        console.error("==========================================");
+        console.error("Invite tenant / Brevo email error");
+        console.error("Error message:", error?.message || error);
         console.error(
             "Error status:",
             error?.statusCode || "No status code"
         );
-
         console.error(
             "Error body:",
             error?.body || "No error body"
         );
-
-        console.error(
-            "=========================================="
-        );
+        console.error("==========================================");
 
         return res.status(500).json({
             message:
@@ -249,40 +228,29 @@ const acceptInvite = async (req, res) => {
         const cleanInviteCode = inviteCode.trim();
 
         console.log("==========================================");
-        console.log("Tenant entered invite code:", cleanInviteCode);
+        console.log(
+            "Tenant entered invite code:",
+            cleanInviteCode
+        );
         console.log("Tenant ID:", req.user.id);
         console.log("==========================================");
 
-        // ------------------------------------------
-        // Find property using invite code
-        // ------------------------------------------
         const property = await Property.findOne({
             inviteCode: cleanInviteCode,
         });
 
         if (!property) {
-            console.log(
-                "No property found for invite code:",
-                cleanInviteCode
-            );
-
             return res.status(404).json({
                 message: "Invalid invite code",
             });
         }
 
-        // ------------------------------------------
-        // Check if property already has tenant
-        // ------------------------------------------
         if (property.tenant) {
             return res.status(400).json({
                 message: "This property already has a tenant",
             });
         }
 
-        // ------------------------------------------
-        // Find logged-in tenant
-        // ------------------------------------------
         const tenant = await User.findById(req.user.id);
 
         if (!tenant) {
@@ -291,9 +259,6 @@ const acceptInvite = async (req, res) => {
             });
         }
 
-        // ------------------------------------------
-        // Check tenant email
-        // ------------------------------------------
         if (
             !property.tenantEmail ||
             tenant.email.toLowerCase() !==
@@ -308,23 +273,12 @@ const acceptInvite = async (req, res) => {
         // ==========================================
         // CALCULATE FIRST RENT DUE DATE
         // ==========================================
-        // Tenant joins today.
-        // Example:
-        // Join: 03 September
-        // Due: 03 October
-        //
-        // If next month does not have the same date:
-        // Join: 31 January
-        // Due: 28 February (or 29 in leap year)
-        // ==========================================
-
         const joinedDate = new Date();
 
         const joinedYear = joinedDate.getFullYear();
         const joinedMonth = joinedDate.getMonth();
         const joinedDay = joinedDate.getDate();
 
-        // First day of next month
         const nextMonthFirstDay = new Date(
             joinedYear,
             joinedMonth + 1,
@@ -337,14 +291,12 @@ const acceptInvite = async (req, res) => {
         const nextMonth =
             nextMonthFirstDay.getMonth();
 
-        // Get last day of next month
         const lastDayOfNextMonth = new Date(
             nextMonthYear,
             nextMonth + 1,
             0
         ).getDate();
 
-        // Make sure date exists in next month
         const validDueDay = Math.min(
             joinedDay,
             lastDayOfNextMonth
@@ -360,16 +312,20 @@ const acceptInvite = async (req, res) => {
         // LINK TENANT WITH PROPERTY
         // ==========================================
         property.tenant = tenant._id;
-
         property.status = "Occupied";
-
         property.rentDueDate = dueDate;
 
         // Reset reminder tracking
         property.lastRentReminderDate = null;
         property.lastRentReminderType = null;
 
-        // Clear invite data after successful joining
+        // Reset leave/vacate information
+        property.leaveRequest = null;
+        property.leaveRequestDate = null;
+        property.vacateDate = null;
+        property.vacateNoticeSent = false;
+
+        // Clear invite data
         property.inviteCode = null;
         property.tenantEmail = null;
 
@@ -379,14 +335,8 @@ const acceptInvite = async (req, res) => {
         console.log("Property joined successfully!");
         console.log("Property ID:", property._id);
         console.log("Tenant ID:", tenant._id);
-        console.log(
-            "Tenant Joined Date:",
-            joinedDate
-        );
-        console.log(
-            "First Rent Due Date:",
-            dueDate
-        );
+        console.log("Tenant Joined Date:", joinedDate);
+        console.log("First Rent Due Date:", dueDate);
         console.log("==========================================");
 
         return res.status(200).json({
@@ -411,10 +361,7 @@ const acceptInvite = async (req, res) => {
             },
         });
     } catch (error) {
-        console.error(
-            "Accept invite error:",
-            error
-        );
+        console.error("Accept invite error:", error);
 
         return res.status(500).json({
             message: "Failed to join property",
@@ -474,14 +421,370 @@ const getMyProperty = async (req, res) => {
             },
         });
     } catch (error) {
+        console.error("Get my property error:", error);
+
+        return res.status(500).json({
+            message: "Failed to fetch your property",
+            error: error.message,
+        });
+    }
+};
+
+// ==========================================
+// Tenant Leave Property Request
+// ==========================================
+const requestLeaveProperty = async (req, res) => {
+    try {
+        const property = await Property.findOne({
+            tenant: req.user.id,
+        }).populate("owner", "name email");
+
+        if (!property) {
+            return res.status(404).json({
+                message:
+                    "You are not currently linked to any property",
+            });
+        }
+
+        if (property.leaveRequest === "Pending") {
+            return res.status(400).json({
+                message:
+                    "Your leave property request is already pending",
+            });
+        }
+
+        // Create leave request
+        property.leaveRequest = "Pending";
+        property.leaveRequestDate = new Date();
+
+        await property.save();
+
+        // Notify owner
+        await Notification.create({
+            user: property.owner._id,
+            title: "Tenant Leave Request",
+            message: `Your tenant has requested to leave the property "${property.name}". Please review the request.`,
+            type: "General",
+            relatedProperty: property._id,
+        });
+
+        return res.status(200).json({
+            message:
+                "Leave property request sent to the owner successfully.",
+        });
+    } catch (error) {
         console.error(
-            "Get my property error:",
+            "Request leave property error:",
             error
         );
 
         return res.status(500).json({
             message:
-                "Failed to fetch your property",
+                "Failed to send leave property request",
+            error: error.message,
+        });
+    }
+};
+
+// ==========================================
+// Owner Accept Tenant Leave Request
+// ==========================================
+const acceptLeaveRequest = async (req, res) => {
+    try {
+        const { propertyId } = req.params;
+
+        const property = await Property.findOne({
+            _id: propertyId,
+            owner: req.user.id,
+        });
+
+        if (!property) {
+            return res.status(404).json({
+                message:
+                    "Property not found or you do not own this property",
+            });
+        }
+
+        if (property.leaveRequest !== "Pending") {
+            return res.status(400).json({
+                message:
+                    "There is no pending leave request for this property",
+            });
+        }
+
+        const oldTenantId = property.tenant;
+
+        // Make property vacant
+        property.tenant = null;
+        property.tenantEmail = null;
+        property.inviteCode = null;
+        property.status = "Available";
+
+        property.rentDueDate = null;
+
+        // Reset rent reminder tracking
+        property.lastRentReminderDate = null;
+        property.lastRentReminderType = null;
+
+        // Clear leave request
+        property.leaveRequest = "Accepted";
+        property.leaveRequestDate = new Date();
+
+        // Clear scheduled vacate notice
+        property.vacateDate = null;
+        property.vacateNoticeSent = false;
+
+        await property.save();
+
+        // Notify old tenant
+        if (oldTenantId) {
+            await Notification.create({
+                user: oldTenantId,
+                title: "Leave Request Accepted",
+                message: `Your request to leave "${property.name}" has been accepted. Your access to the property has been removed.`,
+                type: "General",
+                relatedProperty: property._id,
+            });
+        }
+
+        return res.status(200).json({
+            message:
+                "Leave request accepted. The tenant has been removed and the property is now available.",
+        });
+    } catch (error) {
+        console.error(
+            "Accept leave request error:",
+            error
+        );
+
+        return res.status(500).json({
+            message:
+                "Failed to accept leave request",
+            error: error.message,
+        });
+    }
+};
+
+// ==========================================
+// Owner Reject Tenant Leave Request
+// ==========================================
+const rejectLeaveRequest = async (req, res) => {
+    try {
+        const { propertyId } = req.params;
+
+        const property = await Property.findOne({
+            _id: propertyId,
+            owner: req.user.id,
+        });
+
+        if (!property) {
+            return res.status(404).json({
+                message:
+                    "Property not found or you do not own this property",
+            });
+        }
+
+        if (property.leaveRequest !== "Pending") {
+            return res.status(400).json({
+                message:
+                    "There is no pending leave request for this property",
+            });
+        }
+
+        const tenantId = property.tenant;
+
+        // Tenant stays in property
+        property.leaveRequest = "Rejected";
+        property.leaveRequestDate = new Date();
+
+        await property.save();
+
+        // Notify tenant
+        if (tenantId) {
+            await Notification.create({
+                user: tenantId,
+                title: "Leave Request Rejected",
+                message: `Your request to leave "${property.name}" has been rejected. You will remain linked to this property.`,
+                type: "General",
+                relatedProperty: property._id,
+            });
+        }
+
+        return res.status(200).json({
+            message:
+                "Leave request rejected. The tenant will remain in the property.",
+        });
+    } catch (error) {
+        console.error(
+            "Reject leave request error:",
+            error
+        );
+
+        return res.status(500).json({
+            message:
+                "Failed to reject leave request",
+            error: error.message,
+        });
+    }
+};
+
+// ==========================================
+// Owner Send Scheduled Vacate Notice
+// ==========================================
+const sendVacateNotice = async (req, res) => {
+    try {
+        const { propertyId, vacateDate } = req.body;
+
+        if (!propertyId || !vacateDate) {
+            return res.status(400).json({
+                message:
+                    "Property and vacate date are required",
+            });
+        }
+
+        const property = await Property.findOne({
+            _id: propertyId,
+            owner: req.user.id,
+        }).populate("tenant", "name email");
+
+        if (!property) {
+            return res.status(404).json({
+                message:
+                    "Property not found or you do not own this property",
+            });
+        }
+
+        if (!property.tenant) {
+            return res.status(400).json({
+                message:
+                    "This property does not currently have a tenant",
+            });
+        }
+
+        const selectedVacateDate = new Date(vacateDate);
+
+        if (Number.isNaN(selectedVacateDate.getTime())) {
+            return res.status(400).json({
+                message: "Invalid vacate date",
+            });
+        }
+
+        // Get today without time
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        selectedVacateDate.setHours(0, 0, 0, 0);
+
+        if (selectedVacateDate < today) {
+            return res.status(400).json({
+                message:
+                    "Vacate date cannot be in the past",
+            });
+        }
+
+        // Save scheduled vacate date
+        property.vacateDate = selectedVacateDate;
+        property.vacateNoticeSent = true;
+
+        await property.save();
+
+        // Notify tenant
+        await Notification.create({
+            user: property.tenant._id,
+            title: "Property Vacate Notice",
+            message: `You are required to vacate the property "${property.name}" on ${selectedVacateDate.toLocaleDateString(
+                "en-GB",
+                {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                }
+            )}. Your property access will end on this date.`,
+            type: "General",
+            relatedProperty: property._id,
+        });
+
+        // Optional email notification
+        if (
+            property.tenant.email &&
+            process.env.BREVO_API_KEY &&
+            process.env.BREVO_SENDER_EMAIL
+        ) {
+            try {
+                const brevo = new BrevoClient({
+                    apiKey: process.env.BREVO_API_KEY,
+                });
+
+                await brevo.transactionalEmails.sendTransacEmail({
+                    sender: {
+                        name:
+                            process.env.BREVO_SENDER_NAME ||
+                            "RentEase",
+
+                        email:
+                            process.env.BREVO_SENDER_EMAIL,
+                    },
+
+                    to: [
+                        {
+                            email: property.tenant.email,
+                            name:
+                                property.tenant.name ||
+                                "Tenant",
+                        },
+                    ],
+
+                    subject:
+                        "RentEase - Property Vacate Notice",
+
+                    textContent: `Hello ${
+                        property.tenant.name || "Tenant"
+                    },
+
+You are required to vacate the property "${
+                        property.name
+                    }" on ${selectedVacateDate.toLocaleDateString(
+                        "en-GB",
+                        {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                        }
+                    )}.
+
+Your property access will end on this date.
+
+Thank you,
+RentEase`,
+                });
+
+                console.log(
+                    "Vacate notice email sent successfully."
+                );
+            } catch (emailError) {
+                console.error(
+                    "Vacate notice email error:",
+                    emailError.message
+                );
+            }
+        }
+
+        return res.status(200).json({
+            message:
+                "Vacate notice sent successfully to the tenant.",
+            vacateDate: selectedVacateDate
+                .toISOString()
+                .split("T")[0],
+        });
+    } catch (error) {
+        console.error(
+            "Send vacate notice error:",
+            error
+        );
+
+        return res.status(500).json({
+            message:
+                "Failed to send vacate notice",
             error: error.message,
         });
     }
@@ -495,4 +798,8 @@ module.exports = {
     inviteTenant,
     acceptInvite,
     getMyProperty,
+    requestLeaveProperty,
+    acceptLeaveRequest,
+    rejectLeaveRequest,
+    sendVacateNotice,
 };

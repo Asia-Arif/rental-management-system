@@ -1,5 +1,6 @@
 const cron = require("node-cron");
 const Property = require("../models/Property");
+const Notification = require("../models/Notification");
 const { BrevoClient } = require("@getbrevo/brevo");
 
 // =====================================================
@@ -188,6 +189,209 @@ RentEase`;
 };
 
 // =====================================================
+// CHECK SCHEDULED VACATE DATES
+// =====================================================
+const checkScheduledVacates = async () => {
+    try {
+        console.log(
+            "Checking scheduled property vacates..."
+        );
+
+        const properties = await Property.find({
+            tenant: { $ne: null },
+            vacateDate: { $ne: null },
+            status: "Occupied",
+        }).populate(
+            "tenant",
+            "name email"
+        );
+
+        if (!properties.length) {
+            console.log(
+                "No scheduled property vacates found."
+            );
+
+            return;
+        }
+
+        const today = getDateOnly(new Date());
+
+        for (const property of properties) {
+            try {
+                if (!property.tenant) {
+                    continue;
+                }
+
+                const vacateDate = getDateOnly(
+                    property.vacateDate
+                );
+
+                console.log(
+                    `Property: ${property.name}`
+                );
+
+                console.log(
+                    `Today: ${formatDate(today)}`
+                );
+
+                console.log(
+                    `Vacate Date: ${formatDate(
+                        property.vacateDate
+                    )}`
+                );
+
+                // =================================================
+                // VACATE DATE ARRIVED
+                // =================================================
+                if (today >= vacateDate) {
+                    const oldTenantId =
+                        property.tenant._id;
+
+                    console.log(
+                        `Vacate date reached for ${property.name}`
+                    );
+
+                    // ---------------------------------------------
+                    // Make property available
+                    // ---------------------------------------------
+                    property.tenant = null;
+                    property.tenantEmail = null;
+                    property.inviteCode = null;
+
+                    property.status = "Available";
+
+                    property.rentDueDate = null;
+
+                    // ---------------------------------------------
+                    // Reset rent reminder tracking
+                    // ---------------------------------------------
+                    property.lastRentReminderDate = null;
+                    property.lastRentReminderType = null;
+
+                    // ---------------------------------------------
+                    // Clear scheduled vacate
+                    // ---------------------------------------------
+                    property.vacateDate = null;
+                    property.vacateNoticeSent = false;
+
+                    // ---------------------------------------------
+                    // Clear leave request
+                    // ---------------------------------------------
+                    property.leaveRequest = null;
+                    property.leaveRequestDate = null;
+
+                    await property.save();
+
+                    console.log(
+                        `Property ${property.name} is now Available.`
+                    );
+
+                    // ---------------------------------------------
+                    // Notify old tenant
+                    // ---------------------------------------------
+                    if (oldTenantId) {
+                        await Notification.create({
+                            user: oldTenantId,
+                            title:
+                                "Property Access Removed",
+
+                            message: `Your scheduled vacate date for "${property.name}" has arrived. Your access to the property has been removed and the property is now vacant.`,
+
+                            type: "General",
+
+                            relatedProperty:
+                                property._id,
+                        });
+                    }
+
+                    // ---------------------------------------------
+                    // Optional email
+                    // ---------------------------------------------
+                    if (
+                        property.tenant?.email &&
+                        process.env.BREVO_API_KEY &&
+                        process.env.BREVO_SENDER_EMAIL
+                    ) {
+                        try {
+                            const brevo =
+                                new BrevoClient({
+                                    apiKey:
+                                        process.env.BREVO_API_KEY,
+                                });
+
+                            await brevo.transactionalEmails.sendTransacEmail(
+                                {
+                                    sender: {
+                                        name:
+                                            process.env
+                                                .BREVO_SENDER_NAME ||
+                                            "RentEase",
+
+                                        email:
+                                            process.env
+                                                .BREVO_SENDER_EMAIL,
+                                    },
+
+                                    to: [
+                                        {
+                                            email:
+                                                property
+                                                    .tenant
+                                                    .email,
+
+                                            name:
+                                                property
+                                                    .tenant
+                                                    .name ||
+                                                "Tenant",
+                                        },
+                                    ],
+
+                                    subject:
+                                        "RentEase - Property Access Removed",
+
+                                    textContent: `Hello,
+
+Your scheduled vacate date for "${property.name}" has arrived.
+
+Your access to the property has now been removed and the property is vacant.
+
+Thank you,
+RentEase`,
+                                }
+                            );
+
+                            console.log(
+                                "Vacate completion email sent successfully."
+                            );
+                        } catch (emailError) {
+                            console.error(
+                                "Vacate completion email error:",
+                                emailError.message
+                            );
+                        }
+                    }
+                }
+            } catch (propertyError) {
+                console.error(
+                    `Vacate error for property ${property.name}:`,
+                    propertyError.message
+                );
+            }
+        }
+
+        console.log(
+            "Scheduled vacate check completed."
+        );
+    } catch (error) {
+        console.error(
+            "Scheduled vacate service error:",
+            error.message
+        );
+    }
+};
+
+// =====================================================
 // CHECK RENT REMINDERS
 // =====================================================
 const checkRentReminders = async () => {
@@ -259,7 +463,9 @@ const checkRentReminders = async () => {
                 );
 
                 console.log(
-                    `Due Date: ${formatDate(property.rentDueDate)}`
+                    `Due Date: ${formatDate(
+                        property.rentDueDate
+                    )}`
                 );
 
                 console.log(
@@ -397,7 +603,7 @@ const startRentReminderService = () => {
     );
 
     // =================================================
-    // DAILY RENT REMINDER
+    // DAILY RENT REMINDER + SCHEDULED VACATE CHECK
     // Runs every day at 9:00 AM Pakistan time
     // =================================================
     cron.schedule(
@@ -407,6 +613,10 @@ const startRentReminderService = () => {
                 "Rent reminder cron job running..."
             );
 
+            // Check scheduled property vacates
+            await checkScheduledVacates();
+
+            // Check rent reminders
             await checkRentReminders();
         },
         {
@@ -421,4 +631,5 @@ const startRentReminderService = () => {
 module.exports = {
     startRentReminderService,
     checkRentReminders,
+    checkScheduledVacates,
 };

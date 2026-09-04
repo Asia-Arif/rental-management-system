@@ -5,6 +5,7 @@ import {
     FiBell,
     FiUser,
     FiClipboard,
+    FiLogOut,
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
@@ -16,53 +17,137 @@ const MyProperty = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
 
+    const [leaveLoading, setLeaveLoading] = useState(false);
+    const [leaveMessage, setLeaveMessage] = useState("");
+    const [leaveError, setLeaveError] = useState("");
+
     // Get logged-in tenant's property
-    useEffect(() => {
-        const fetchMyProperty = async () => {
-            try {
-                const token = localStorage.getItem("token");
+    const fetchMyProperty = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-                if (!token) {
-                    navigate("/login");
-                    return;
-                }
+            const token = localStorage.getItem("token");
 
-                const response = await fetch(
-                    "http://localhost:5000/api/tenants/my-property",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(
-                        data.message ||
-                            "Failed to fetch property"
-                    );
-                }
-
-                setProperty(data.property);
-            } catch (error) {
-                console.error(
-                    "Get my property error:",
-                    error
-                );
-
-                setError(
-                    error.message ||
-                        "Unable to load your property"
-                );
-            } finally {
-                setLoading(false);
+            if (!token) {
+                navigate("/login");
+                return;
             }
-        };
 
+            const response = await fetch(
+                "http://localhost:5000/api/tenants/my-property",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            // Tenant has no property linked
+            if (response.status === 404) {
+                setProperty(null);
+                setError("");
+                return;
+            }
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message || "Failed to fetch property"
+                );
+            }
+
+            setProperty(data.property);
+        } catch (error) {
+            console.error(
+                "Get my property error:",
+                error
+            );
+
+            setError(
+                error.message ||
+                    "Unable to load your property"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchMyProperty();
     }, [navigate]);
+
+    // Request to leave property
+    const handleLeaveProperty = async () => {
+        const confirmed = window.confirm(
+            "Are you sure you want to request to leave this property? Your access will only be removed if the owner accepts your request."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setLeaveLoading(true);
+            setLeaveMessage("");
+            setLeaveError("");
+
+            const token = localStorage.getItem("token");
+
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            const response = await fetch(
+                "http://localhost:5000/api/tenants/leave-request",
+                {
+                    method: "POST",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Failed to send leave request"
+                );
+            }
+
+            setLeaveMessage(
+                data.message ||
+                    "Leave request sent to the owner successfully."
+            );
+
+            // Update local property state immediately
+            setProperty((prev) =>
+                prev
+                    ? {
+                          ...prev,
+                          leaveRequest: "Pending",
+                          leaveRequestDate: new Date(),
+                      }
+                    : prev
+            );
+        } catch (error) {
+            console.error(
+                "Leave property request error:",
+                error
+            );
+
+            setLeaveError(
+                error.message ||
+                    "Unable to send leave request"
+            );
+        } finally {
+            setLeaveLoading(false);
+        }
+    };
 
     // Logout
     const handleLogout = () => {
@@ -147,11 +232,9 @@ const MyProperty = () => {
                     {/* Loading */}
                     {loading && (
                         <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
-
                             <p className="text-sm text-slate-500">
                                 Loading your property...
                             </p>
-
                         </div>
                     )}
 
@@ -184,6 +267,23 @@ const MyProperty = () => {
                     {/* Property */}
                     {!loading && !error && property && (
                         <>
+                            {/* Leave Request Messages */}
+                            {leaveMessage && (
+                                <div className="mb-6 rounded-xl border border-green-200 bg-green-50 p-4">
+                                    <p className="text-sm font-medium text-green-700">
+                                        {leaveMessage}
+                                    </p>
+                                </div>
+                            )}
+
+                            {leaveError && (
+                                <div className="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+                                    <p className="text-sm font-medium text-red-700">
+                                        {leaveError}
+                                    </p>
+                                </div>
+                            )}
+
                             {/* Property Header */}
                             <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
@@ -272,8 +372,7 @@ const MyProperty = () => {
                                             </p>
 
                                             <p className="mt-2 text-sm font-semibold text-slate-700">
-                                                {property.bedrooms ??
-                                                    0}{" "}
+                                                {property.bedrooms ?? 0}{" "}
                                                 {Number(
                                                     property.bedrooms || 0
                                                 ) === 1
@@ -291,8 +390,7 @@ const MyProperty = () => {
                                             </p>
 
                                             <p className="mt-2 text-sm font-semibold text-slate-700">
-                                                {property.bathrooms ??
-                                                    0}{" "}
+                                                {property.bathrooms ?? 0}{" "}
                                                 {Number(
                                                     property.bathrooms || 0
                                                 ) === 1
@@ -329,9 +427,7 @@ const MyProperty = () => {
                                             </p>
 
                                             <p className="mt-2 text-sm leading-6 text-slate-700">
-                                                {
-                                                    property.description
-                                                }
+                                                {property.description}
                                             </p>
 
                                         </div>
@@ -354,7 +450,6 @@ const MyProperty = () => {
                                         </div>
 
                                         <div>
-
                                             <h2 className="font-semibold text-slate-800">
                                                 Property Owner
                                             </h2>
@@ -362,14 +457,12 @@ const MyProperty = () => {
                                             <p className="text-xs text-slate-500">
                                                 Your landlord information
                                             </p>
-
                                         </div>
 
                                     </div>
 
                                     <div className="mt-6 space-y-4">
 
-                                        {/* Owner Name */}
                                         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
 
                                             <span className="text-sm text-slate-500">
@@ -383,7 +476,6 @@ const MyProperty = () => {
 
                                         </div>
 
-                                        {/* Owner Email */}
                                         <div className="flex items-center justify-between border-b border-slate-100 pb-4">
 
                                             <span className="text-sm text-slate-500">
@@ -397,7 +489,6 @@ const MyProperty = () => {
 
                                         </div>
 
-                                        {/* Owner Phone */}
                                         <div className="flex items-center justify-between">
 
                                             <span className="text-sm text-slate-500">
@@ -425,7 +516,6 @@ const MyProperty = () => {
                                         </div>
 
                                         <div>
-
                                             <h2 className="font-semibold text-slate-800">
                                                 Tenancy Information
                                             </h2>
@@ -433,7 +523,6 @@ const MyProperty = () => {
                                             <p className="text-xs text-slate-500">
                                                 Your current rental status
                                             </p>
-
                                         </div>
 
                                     </div>
@@ -489,6 +578,63 @@ const MyProperty = () => {
                                 </div>
 
                             </div>
+
+                            {/* Leave Property Section */}
+                            <div className="mt-6 rounded-xl border border-red-200 bg-white p-6 shadow-sm">
+
+                                <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
+
+                                    <div>
+                                        <h2 className="font-semibold text-slate-800">
+                                            Leave Property
+                                        </h2>
+
+                                        <p className="mt-1 text-sm text-slate-500">
+                                            Send a request to your owner if you want
+                                            to leave this property.
+                                        </p>
+
+                                        {property.leaveRequest ===
+                                            "Pending" && (
+                                            <p className="mt-2 text-sm font-medium text-amber-600">
+                                                Your leave request is pending.
+                                                Please wait for the owner's
+                                                response.
+                                            </p>
+                                        )}
+
+                                        {property.leaveRequest ===
+                                            "Rejected" && (
+                                            <p className="mt-2 text-sm font-medium text-red-600">
+                                                Your previous leave request was
+                                                rejected by the owner.
+                                            </p>
+                                        )}
+
+                                    </div>
+
+                                    <button
+                                        onClick={handleLeaveProperty}
+                                        disabled={
+                                            leaveLoading ||
+                                            property.leaveRequest ===
+                                                "Pending"
+                                        }
+                                        className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-red-600 px-5 py-3 text-sm font-medium text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                    >
+                                        <FiLogOut />
+
+                                        {leaveLoading
+                                            ? "Sending..."
+                                            : property.leaveRequest ===
+                                              "Pending"
+                                            ? "Request Pending"
+                                            : "Leave Property"}
+                                    </button>
+
+                                </div>
+
+                            </div>
                         </>
                     )}
 
@@ -505,7 +651,8 @@ const MyProperty = () => {
                             </h2>
 
                             <p className="mt-2 text-sm text-slate-500">
-                                You are not currently linked to any rental property.
+                                You are not currently linked to any rental
+                                property.
                             </p>
 
                             <button

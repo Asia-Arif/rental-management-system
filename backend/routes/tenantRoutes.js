@@ -5,6 +5,10 @@ const {
     inviteTenant,
     acceptInvite,
     getMyProperty,
+    requestLeaveProperty,
+    acceptLeaveRequest,
+    rejectLeaveRequest,
+    sendVacateNotice,
 } = require("../controllers/tenantController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -50,6 +54,46 @@ router.get(
     authMiddleware,
     roleMiddleware("tenant"),
     getMyProperty
+);
+
+// ==========================================
+// Tenant Leave Property Request
+// ==========================================
+router.post(
+    "/leave-request",
+    authMiddleware,
+    roleMiddleware("tenant"),
+    requestLeaveProperty
+);
+
+// ==========================================
+// Owner Accept Leave Request
+// ==========================================
+router.put(
+    "/leave-request/:propertyId/accept",
+    authMiddleware,
+    roleMiddleware("owner"),
+    acceptLeaveRequest
+);
+
+// ==========================================
+// Owner Reject Leave Request
+// ==========================================
+router.put(
+    "/leave-request/:propertyId/reject",
+    authMiddleware,
+    roleMiddleware("owner"),
+    rejectLeaveRequest
+);
+
+// ==========================================
+// Owner Send Scheduled Vacate Notice
+// ==========================================
+router.post(
+    "/vacate-notice",
+    authMiddleware,
+    roleMiddleware("owner"),
+    sendVacateNotice
 );
 
 module.exports = router;

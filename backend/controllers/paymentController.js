@@ -74,6 +74,9 @@ const submitPaymentProof = async (req, res) => {
             });
         }
 
+        // ------------------------------------------
+        // Create payment
+        // ------------------------------------------
         const payment =
             await Payment.create({
                 tenant: req.user.id,
@@ -86,6 +89,25 @@ const submitPaymentProof = async (req, res) => {
                     cloudinaryResult.secure_url,
                 status: "Pending",
             });
+
+        // ------------------------------------------
+        // Notify owner about new payment
+        // ------------------------------------------
+        await Notification.create({
+            user: property.owner,
+
+            title: "New Rent Payment Submitted",
+
+            message: `Your tenant has submitted a rent payment of Rs. ${amount} for "${property.name}". Please review the payment proof.`,
+
+            type: "Payment",
+
+            read: false,
+
+            relatedProperty: property._id,
+
+            relatedPayment: payment._id,
+        });
 
         res.status(201).json({
             message:
@@ -350,6 +372,27 @@ const approvePayment = async (req, res) => {
             await property.save();
         }
 
+        // ------------------------------------------
+        // Notify tenant about approved payment
+        // ------------------------------------------
+        await Notification.create({
+            user: payment.tenant,
+
+            title: "Payment Approved",
+
+            message: `Your rent payment of Rs. ${payment.amount} for "${property ? property.name : "your property"}" has been approved by the owner.`,
+
+            type: "Payment",
+
+            read: false,
+
+            relatedProperty:
+                payment.property,
+
+            relatedPayment:
+                payment._id,
+        });
+
         res.status(200).json({
             message:
                 "Payment approved successfully",
@@ -420,7 +463,7 @@ const rejectPayment = async (req, res) => {
             );
 
         // ------------------------------------------
-        // Existing tenant notification
+        // Notify tenant about rejected payment
         // ------------------------------------------
         await Notification.create({
             user: payment.tenant,

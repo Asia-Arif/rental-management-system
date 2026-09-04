@@ -539,9 +539,7 @@ const Payments = () => {
                                                     Bank Transfer
                                                 </option>
 
-                                                <option value="Cash">
-                                                    Cash
-                                                </option>
+                                                
                                             </select>
                                         </div>
 
@@ -553,6 +551,7 @@ const Payments = () => {
                                             <input
                                                 type="date"
                                                 value={paymentDate}
+                                                max={new Date().toISOString().split("T")[0]}
                                                 onChange={(e) =>
                                                     setPaymentDate(
                                                         e.target.value

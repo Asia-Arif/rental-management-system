@@ -6,6 +6,9 @@ import {
     MdEmail,
     MdNotifications,
     MdAdd,
+    MdEvent,
+    MdCheck,
+    MdCancel,
 } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
 
@@ -27,65 +30,90 @@ const Tenants = () => {
     const [inviteMessage, setInviteMessage] = useState("");
     const [inviteError, setInviteError] = useState("");
 
+    // Leave Request
+    const [leaveActionLoading, setLeaveActionLoading] =
+        useState("");
+
+    // Vacate Notice Modal
+    const [showVacateModal, setShowVacateModal] =
+        useState(false);
+    const [vacateProperty, setVacateProperty] =
+        useState(null);
+    const [vacateDate, setVacateDate] = useState("");
+    const [vacateLoading, setVacateLoading] = useState(false);
+    const [vacateMessage, setVacateMessage] = useState("");
+    const [vacateError, setVacateError] = useState("");
+
     // Get tenants and properties
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const token = localStorage.getItem("token");
+    const fetchData = async () => {
+        try {
+            setLoading(true);
+            setError("");
 
-                if (!token) {
-                    navigate("/login");
-                    return;
-                }
+            const token = localStorage.getItem("token");
 
-                // Get tenants
-                const tenantsResponse = await fetch(
-                    "http://localhost:5000/api/tenants",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                const tenantsData = await tenantsResponse.json();
-
-                if (!tenantsResponse.ok) {
-                    throw new Error(
-                        tenantsData.message || "Failed to fetch tenants"
-                    );
-                }
-
-                setTenants(tenantsData.tenants || []);
-
-                // Get owner's properties
-                const propertiesResponse = await fetch(
-                    "http://localhost:5000/api/properties",
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`,
-                        },
-                    }
-                );
-
-                const propertiesData = await propertiesResponse.json();
-
-                if (!propertiesResponse.ok) {
-                    throw new Error(
-                        propertiesData.message ||
-                            "Failed to fetch properties"
-                    );
-                }
-
-                setProperties(propertiesData.properties || []);
-            } catch (error) {
-                console.error("Get tenants/properties error:", error);
-                setError(error.message || "Unable to fetch data");
-            } finally {
-                setLoading(false);
+            if (!token) {
+                navigate("/login");
+                return;
             }
-        };
 
+            // Get tenants
+            const tenantsResponse = await fetch(
+                "http://localhost:5000/api/tenants",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const tenantsData = await tenantsResponse.json();
+
+            if (!tenantsResponse.ok) {
+                throw new Error(
+                    tenantsData.message ||
+                        "Failed to fetch tenants"
+                );
+            }
+
+            setTenants(tenantsData.tenants || []);
+
+            // Get owner's properties
+            const propertiesResponse = await fetch(
+                "http://localhost:5000/api/properties",
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const propertiesData =
+                await propertiesResponse.json();
+
+            if (!propertiesResponse.ok) {
+                throw new Error(
+                    propertiesData.message ||
+                        "Failed to fetch properties"
+                );
+            }
+
+            setProperties(propertiesData.properties || []);
+        } catch (error) {
+            console.error(
+                "Get tenants/properties error:",
+                error
+            );
+
+            setError(
+                error.message || "Unable to fetch data"
+            );
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
     }, [navigate]);
 
@@ -110,7 +138,8 @@ const Tenants = () => {
 
     // Monthly expected rent
     const monthlyExpectedRent = activeTenants.reduce(
-        (total, tenant) => total + Number(tenant.rent || 0),
+        (total, tenant) =>
+            total + Number(tenant.rent || 0),
         0
     );
 
@@ -142,12 +171,16 @@ const Tenants = () => {
         setInviteError("");
 
         if (!inviteEmail.trim()) {
-            setInviteError("Please enter tenant email.");
+            setInviteError(
+                "Please enter tenant email."
+            );
             return;
         }
 
         if (!selectedProperty) {
-            setInviteError("Please select a property.");
+            setInviteError(
+                "Please select a property."
+            );
             return;
         }
 
@@ -180,25 +213,287 @@ const Tenants = () => {
 
             if (!response.ok) {
                 throw new Error(
-                    data.message || "Failed to send tenant invite"
+                    data.message ||
+                        "Failed to send tenant invite"
                 );
             }
 
             setInviteMessage(
-                data.message || "Invite sent successfully!"
+                data.message ||
+                    "Invite sent successfully!"
             );
 
             setInviteEmail("");
             setSelectedProperty("");
 
+            // Refresh data
+            await fetchData();
         } catch (error) {
-            console.error("Send tenant invite error:", error);
+            console.error(
+                "Send tenant invite error:",
+                error
+            );
+
             setInviteError(
-                error.message || "Unable to send tenant invite"
+                error.message ||
+                    "Unable to send tenant invite"
             );
         } finally {
             setInviteLoading(false);
         }
+    };
+
+    // Accept leave request
+    const handleAcceptLeaveRequest = async (
+        propertyId
+    ) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to accept this leave request? The tenant will immediately lose access to the property."
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setLeaveActionLoading(
+                `${propertyId}-accept`
+            );
+
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            const response = await fetch(
+                `http://localhost:5000/api/tenants/leave-request/${propertyId}/accept`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Failed to accept leave request"
+                );
+            }
+
+            alert(
+                data.message ||
+                    "Leave request accepted successfully."
+            );
+
+            await fetchData();
+        } catch (error) {
+            console.error(
+                "Accept leave request error:",
+                error
+            );
+
+            alert(
+                error.message ||
+                    "Unable to accept leave request"
+            );
+        } finally {
+            setLeaveActionLoading("");
+        }
+    };
+
+    // Reject leave request
+    const handleRejectLeaveRequest = async (
+        propertyId
+    ) => {
+        const confirmed = window.confirm(
+            "Are you sure you want to reject this leave request?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+            setLeaveActionLoading(
+                `${propertyId}-reject`
+            );
+
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            const response = await fetch(
+                `http://localhost:5000/api/tenants/leave-request/${propertyId}/reject`,
+                {
+                    method: "PUT",
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                    },
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Failed to reject leave request"
+                );
+            }
+
+            alert(
+                data.message ||
+                    "Leave request rejected successfully."
+            );
+
+            await fetchData();
+        } catch (error) {
+            console.error(
+                "Reject leave request error:",
+                error
+            );
+
+            alert(
+                error.message ||
+                    "Unable to reject leave request"
+            );
+        } finally {
+            setLeaveActionLoading("");
+        }
+    };
+
+    // Open vacate modal
+    const openVacateModal = (tenant) => {
+        setVacateProperty({
+            propertyId: tenant.propertyId,
+            propertyName: tenant.property,
+            tenantName: tenant.name,
+        });
+
+        setVacateDate("");
+        setVacateMessage("");
+        setVacateError("");
+        setShowVacateModal(true);
+    };
+
+    // Close vacate modal
+    const closeVacateModal = () => {
+        if (vacateLoading) return;
+
+        setShowVacateModal(false);
+        setVacateProperty(null);
+        setVacateDate("");
+        setVacateMessage("");
+        setVacateError("");
+    };
+
+    // Send vacate notice
+    const handleSendVacateNotice = async (e) => {
+        e.preventDefault();
+
+        setVacateMessage("");
+        setVacateError("");
+
+        if (!vacateProperty?.propertyId) {
+            setVacateError(
+                "Property information is missing."
+            );
+            return;
+        }
+
+        if (!vacateDate) {
+            setVacateError(
+                "Please select a vacate date."
+            );
+            return;
+        }
+
+        try {
+            setVacateLoading(true);
+
+            const token =
+                localStorage.getItem("token");
+
+            if (!token) {
+                navigate("/login");
+                return;
+            }
+
+            const response = await fetch(
+                "http://localhost:5000/api/tenants/vacate-notice",
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        propertyId:
+                            vacateProperty.propertyId,
+                        vacateDate,
+                    }),
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.message ||
+                        "Failed to send vacate notice"
+                );
+            }
+
+            setVacateMessage(
+                data.message ||
+                    "Vacate notice sent successfully."
+            );
+
+            await fetchData();
+        } catch (error) {
+            console.error(
+                "Send vacate notice error:",
+                error
+            );
+
+            setVacateError(
+                error.message ||
+                    "Unable to send vacate notice"
+            );
+        } finally {
+            setVacateLoading(false);
+        }
+    };
+
+    // Format vacate date
+    const formatVacateDate = (date) => {
+        if (!date) return "";
+
+        const parsedDate = new Date(date);
+
+        if (Number.isNaN(parsedDate.getTime())) {
+            return "";
+        }
+
+        return parsedDate.toLocaleDateString(
+            "en-GB",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+            }
+        );
     };
 
     return (
@@ -229,7 +524,9 @@ const Tenants = () => {
 
                             <button
                                 onClick={() =>
-                                    navigate("/owner/notifications")
+                                    navigate(
+                                        "/owner/notifications"
+                                    )
                                 }
                                 className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
@@ -244,8 +541,12 @@ const Tenants = () => {
 
                             <button
                                 onClick={() => {
-                                    localStorage.removeItem("token");
-                                    localStorage.removeItem("user");
+                                    localStorage.removeItem(
+                                        "token"
+                                    );
+                                    localStorage.removeItem(
+                                        "user"
+                                    );
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
@@ -270,8 +571,8 @@ const Tenants = () => {
                             </h1>
 
                             <p className="mt-1 text-sm text-slate-500">
-                                View and manage tenants currently living in your
-                                properties.
+                                View and manage tenants currently
+                                living in your properties.
                             </p>
                         </div>
 
@@ -299,16 +600,21 @@ const Tenants = () => {
                     <div className="grid grid-cols-1 gap-5 sm:grid-cols-3">
 
                         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
                             <p className="text-sm text-slate-500">
                                 Total Tenants
                             </p>
 
                             <h2 className="mt-2 text-3xl font-bold text-slate-800">
-                                {loading ? "..." : tenants.length}
+                                {loading
+                                    ? "..."
+                                    : tenants.length}
                             </h2>
+
                         </div>
 
                         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
                             <p className="text-sm text-slate-500">
                                 Active Tenants
                             </p>
@@ -318,9 +624,11 @@ const Tenants = () => {
                                     ? "..."
                                     : activeTenants.length}
                             </h2>
+
                         </div>
 
                         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+
                             <p className="text-sm text-slate-500">
                                 Monthly Expected Rent
                             </p>
@@ -330,6 +638,7 @@ const Tenants = () => {
                                     ? "..."
                                     : `Rs. ${monthlyExpectedRent.toLocaleString()}`}
                             </h2>
+
                         </div>
 
                     </div>
@@ -353,6 +662,7 @@ const Tenants = () => {
                     <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
 
                         <div className="border-b border-slate-200 px-6 py-5">
+
                             <h2 className="font-semibold text-slate-800">
                                 Tenant List
                             </h2>
@@ -360,18 +670,21 @@ const Tenants = () => {
                             <p className="mt-1 text-xs text-slate-500">
                                 All tenants associated with your properties.
                             </p>
+
                         </div>
 
                         {loading ? (
                             <div className="p-12 text-center">
+
                                 <p className="text-sm text-slate-500">
                                     Loading tenants...
                                 </p>
+
                             </div>
                         ) : (
                             <div className="overflow-x-auto">
 
-                                <table className="w-full min-w-[950px] text-left">
+                                <table className="w-full min-w-[1200px] text-left">
 
                                     <thead>
                                         <tr className="border-b border-slate-200 bg-slate-50">
@@ -409,116 +722,222 @@ const Tenants = () => {
 
                                     <tbody>
 
-                                        {filteredTenants.map((tenant) => (
-                                            <tr
-                                                key={tenant.id}
-                                                className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
-                                            >
+                                        {filteredTenants.map(
+                                            (tenant) => (
+                                                <tr
+                                                    key={tenant.id}
+                                                    className="border-b border-slate-100 last:border-0 hover:bg-slate-50"
+                                                >
 
-                                                {/* Tenant */}
-                                                <td className="px-6 py-5">
+                                                    {/* Tenant */}
+                                                    <td className="px-6 py-5">
 
-                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-3">
 
-                                                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                                            {tenant.name
-                                                                ?.charAt(0)
-                                                                .toUpperCase()}
+                                                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
+                                                                {tenant.name
+                                                                    ?.charAt(
+                                                                        0
+                                                                    )
+                                                                    .toUpperCase()}
+                                                            </div>
+
+                                                            <div>
+
+                                                                <p className="text-sm font-semibold text-slate-700">
+                                                                    {
+                                                                        tenant.name
+                                                                    }
+                                                                </p>
+
+                                                                <p className="text-xs text-slate-500">
+                                                                    Tenant
+                                                                </p>
+
+                                                            </div>
+
                                                         </div>
 
-                                                        <div>
-                                                            <p className="text-sm font-semibold text-slate-700">
-                                                                {tenant.name}
-                                                            </p>
+                                                    </td>
 
-                                                            <p className="text-xs text-slate-500">
-                                                                Tenant
+                                                    {/* Contact */}
+                                                    <td className="px-6 py-5">
+
+                                                        <p className="text-sm text-slate-600">
+                                                            {
+                                                                tenant.email
+                                                            }
+                                                        </p>
+
+                                                        <p className="mt-1 text-xs text-slate-500">
+                                                            {tenant.phone ||
+                                                                "Not provided"}
+                                                        </p>
+
+                                                    </td>
+
+                                                    {/* Property */}
+                                                    <td className="px-6 py-5">
+
+                                                        <p className="text-sm font-medium text-slate-700">
+                                                            {
+                                                                tenant.property
+                                                            }
+                                                        </p>
+
+                                                        {/* Vacate Date */}
+                                                        {tenant.vacateDate && (
+                                                            <p className="mt-1 text-xs font-medium text-orange-600">
+                                                                Vacate:{" "}
+                                                                {formatVacateDate(
+                                                                    tenant.vacateDate
+                                                                )}
                                                             </p>
+                                                        )}
+
+                                                    </td>
+
+                                                    {/* Rent */}
+                                                    <td className="px-6 py-5">
+
+                                                        <p className="text-sm font-semibold text-slate-700">
+                                                            Rs.{" "}
+                                                            {Number(
+                                                                tenant.rent ||
+                                                                    0
+                                                            ).toLocaleString()}
+                                                        </p>
+
+                                                    </td>
+
+                                                    {/* Due Date */}
+                                                    <td className="px-6 py-5">
+
+                                                        <p className="text-sm text-slate-600">
+                                                            {tenant.dueDate ||
+                                                                "Not set"}
+                                                        </p>
+
+                                                    </td>
+
+                                                    {/* Status */}
+                                                    <td className="px-6 py-5">
+
+                                                        <span
+                                                            className={`rounded-full px-3 py-1 text-xs font-medium ${
+                                                                tenant.status ===
+                                                                "Active"
+                                                                    ? "bg-green-100 text-green-700"
+                                                                    : "bg-slate-100 text-slate-600"
+                                                            }`}
+                                                        >
+                                                            {
+                                                                tenant.status
+                                                            }
+                                                        </span>
+
+                                                        {/* Leave Request */}
+                                                        {tenant.leaveRequest ===
+                                                            "Pending" && (
+                                                            <span className="mt-2 block rounded-full bg-orange-100 px-3 py-1 text-center text-xs font-medium text-orange-700">
+                                                                Leave Request
+                                                            </span>
+                                                        )}
+
+                                                    </td>
+
+                                                    {/* Action */}
+                                                    <td className="px-6 py-5">
+
+                                                        <div className="flex flex-col gap-2">
+
+                                                            {/* Leave Request Actions */}
+                                                            {tenant.leaveRequest ===
+                                                                "Pending" && (
+                                                                <div className="flex gap-2">
+
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleAcceptLeaveRequest(
+                                                                                tenant.propertyId
+                                                                            )
+                                                                        }
+                                                                        disabled={
+                                                                            leaveActionLoading ===
+                                                                            `${tenant.propertyId}-accept`
+                                                                        }
+                                                                        className="flex items-center gap-1 rounded-lg bg-green-600 px-3 py-2 text-xs font-medium text-white hover:bg-green-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                    >
+                                                                        <MdCheck />
+
+                                                                        {leaveActionLoading ===
+                                                                        `${tenant.propertyId}-accept`
+                                                                            ? "..."
+                                                                            : "Accept"}
+                                                                    </button>
+
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            handleRejectLeaveRequest(
+                                                                                tenant.propertyId
+                                                                            )
+                                                                        }
+                                                                        disabled={
+                                                                            leaveActionLoading ===
+                                                                            `${tenant.propertyId}-reject`
+                                                                        }
+                                                                        className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-2 text-xs font-medium text-white hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                                                    >
+                                                                        <MdCancel />
+
+                                                                        {leaveActionLoading ===
+                                                                        `${tenant.propertyId}-reject`
+                                                                            ? "..."
+                                                                            : "Reject"}
+                                                                    </button>
+
+                                                                </div>
+                                                            )}
+
+                                                            {/* Vacate Notice */}
+                                                            {tenant.status ===
+                                                                "Active" &&
+                                                                tenant.propertyId && (
+                                                                    <button
+                                                                        onClick={() =>
+                                                                            openVacateModal(
+                                                                                tenant
+                                                                            )
+                                                                        }
+                                                                        className="flex items-center justify-center gap-1 rounded-lg border border-orange-200 bg-orange-50 px-3 py-2 text-xs font-medium text-orange-700 hover:bg-orange-100"
+                                                                    >
+                                                                        <MdEvent />
+
+                                                                        {tenant.vacateDate
+                                                                            ? "Update Vacate Date"
+                                                                            : "Send Vacate Notice"}
+                                                                    </button>
+                                                                )}
+
+                                                            {/* View */}
+                                                            <button
+                                                                onClick={() =>
+                                                                    alert(
+                                                                        `Viewing ${tenant.name}`
+                                                                    )
+                                                                }
+                                                                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                                                            >
+                                                                View
+                                                            </button>
+
                                                         </div>
 
-                                                    </div>
+                                                    </td>
 
-                                                </td>
-
-                                                {/* Contact */}
-                                                <td className="px-6 py-5">
-
-                                                    <p className="text-sm text-slate-600">
-                                                        {tenant.email}
-                                                    </p>
-
-                                                    <p className="mt-1 text-xs text-slate-500">
-                                                        {tenant.phone ||
-                                                            "Not provided"}
-                                                    </p>
-
-                                                </td>
-
-                                                {/* Property */}
-                                                <td className="px-6 py-5">
-
-                                                    <p className="text-sm font-medium text-slate-700">
-                                                        {tenant.property}
-                                                    </p>
-
-                                                </td>
-
-                                                {/* Rent */}
-                                                <td className="px-6 py-5">
-
-                                                    <p className="text-sm font-semibold text-slate-700">
-                                                        Rs.{" "}
-                                                        {Number(
-                                                            tenant.rent || 0
-                                                        ).toLocaleString()}
-                                                    </p>
-
-                                                </td>
-
-                                                {/* Due Date */}
-                                                <td className="px-6 py-5">
-
-                                                    <p className="text-sm text-slate-600">
-                                                        {tenant.dueDate ||
-                                                            "Not set"}
-                                                    </p>
-
-                                                </td>
-
-                                                {/* Status */}
-                                                <td className="px-6 py-5">
-
-                                                    <span
-                                                        className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                                            tenant.status ===
-                                                            "Active"
-                                                                ? "bg-green-100 text-green-700"
-                                                                : "bg-slate-100 text-slate-600"
-                                                        }`}
-                                                    >
-                                                        {tenant.status}
-                                                    </span>
-
-                                                </td>
-
-                                                {/* Action */}
-                                                <td className="px-6 py-5">
-
-                                                    <button
-                                                        onClick={() =>
-                                                            alert(
-                                                                `Viewing ${tenant.name}`
-                                                            )
-                                                        }
-                                                        className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                                                    >
-                                                        View
-                                                    </button>
-
-                                                </td>
-
-                                            </tr>
-                                        ))}
+                                                </tr>
+                                            )
+                                        )}
 
                                     </tbody>
 
@@ -561,7 +980,6 @@ const Tenants = () => {
 
                     <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
 
-                        {/* Modal Header */}
                         <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
 
                             <div className="flex items-center gap-3">
@@ -591,13 +1009,11 @@ const Tenants = () => {
 
                         </div>
 
-                        {/* Modal Body */}
                         <form
                             onSubmit={handleSendInvite}
                             className="space-y-5 px-6 py-6"
                         >
 
-                            {/* Success Message */}
                             {inviteMessage && (
                                 <div className="rounded-lg border border-green-200 bg-green-50 p-3">
                                     <p className="text-sm text-green-700">
@@ -606,7 +1022,6 @@ const Tenants = () => {
                                 </div>
                             )}
 
-                            {/* Error Message */}
                             {inviteError && (
                                 <div className="rounded-lg border border-red-200 bg-red-50 p-3">
                                     <p className="text-sm text-red-600">
@@ -626,13 +1041,16 @@ const Tenants = () => {
                                     placeholder="tenant@example.com"
                                     value={inviteEmail}
                                     onChange={(e) =>
-                                        setInviteEmail(e.target.value)
+                                        setInviteEmail(
+                                            e.target.value
+                                        )
                                     }
                                     className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 />
 
                                 <p className="mt-1 text-xs text-slate-500">
-                                    The invite code will be sent to this email.
+                                    The invite code will be sent to this
+                                    email.
                                 </p>
                             </div>
 
@@ -651,6 +1069,7 @@ const Tenants = () => {
                                     }
                                     className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
                                 >
+
                                     <option value="">
                                         Select a property
                                     </option>
@@ -663,25 +1082,33 @@ const Tenants = () => {
                                         )
                                         .map((property) => (
                                             <option
-                                                key={property._id}
-                                                value={property._id}
+                                                key={
+                                                    property._id
+                                                }
+                                                value={
+                                                    property._id
+                                                }
                                             >
                                                 {property.name} - Rs.{" "}
                                                 {Number(
-                                                    property.rent || 0
+                                                    property.rent ||
+                                                        0
                                                 ).toLocaleString()}
                                             </option>
                                         ))}
+
                                 </select>
 
                                 {properties.filter(
                                     (property) =>
-                                        property.status !== "Occupied"
+                                        property.status !==
+                                        "Occupied"
                                 ).length === 0 && (
                                     <p className="mt-2 text-xs text-red-500">
                                         No available properties found.
                                     </p>
                                 )}
+
                             </div>
 
                             {/* Buttons */}
@@ -690,7 +1117,9 @@ const Tenants = () => {
                                 <button
                                     type="button"
                                     onClick={closeInviteModal}
-                                    disabled={inviteLoading}
+                                    disabled={
+                                        inviteLoading
+                                    }
                                     className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     Cancel
@@ -698,12 +1127,194 @@ const Tenants = () => {
 
                                 <button
                                     type="submit"
-                                    disabled={inviteLoading}
+                                    disabled={
+                                        inviteLoading
+                                    }
                                     className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
                                 >
                                     {inviteLoading
                                         ? "Sending..."
                                         : "Send Invite"}
+                                </button>
+
+                            </div>
+
+                        </form>
+
+                    </div>
+
+                </div>
+            )}
+
+            {/* ================= VACATE NOTICE MODAL ================= */}
+
+            {showVacateModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4">
+
+                    <div className="w-full max-w-md rounded-2xl bg-white shadow-xl">
+
+                        {/* Header */}
+                        <div className="flex items-center justify-between border-b border-slate-200 px-6 py-5">
+
+                            <div className="flex items-center gap-3">
+
+                                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-600">
+                                    <MdEvent className="text-xl" />
+                                </div>
+
+                                <div>
+                                    <h2 className="text-lg font-semibold text-slate-800">
+                                        Vacate Notice
+                                    </h2>
+
+                                    <p className="text-xs text-slate-500">
+                                        Notify your tenant about the vacate date
+                                    </p>
+                                </div>
+
+                            </div>
+
+                            <button
+                                onClick={closeVacateModal}
+                                disabled={vacateLoading}
+                                className="rounded-full p-2 text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                            >
+                                <MdClose className="text-xl" />
+                            </button>
+
+                        </div>
+
+                        {/* Form */}
+                        <form
+                            onSubmit={
+                                handleSendVacateNotice
+                            }
+                            className="space-y-5 px-6 py-6"
+                        >
+
+                            {/* Success */}
+                            {vacateMessage && (
+                                <div className="rounded-lg border border-green-200 bg-green-50 p-3">
+                                    <p className="text-sm text-green-700">
+                                        {vacateMessage}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Error */}
+                            {vacateError && (
+                                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
+                                    <p className="text-sm text-red-600">
+                                        {vacateError}
+                                    </p>
+                                </div>
+                            )}
+
+                            {/* Tenant */}
+                            <div className="rounded-lg bg-slate-50 p-4">
+
+                                <p className="text-xs text-slate-500">
+                                    Tenant
+                                </p>
+
+                                <p className="mt-1 text-sm font-semibold text-slate-800">
+                                    {vacateProperty?.tenantName ||
+                                        "Tenant"}
+                                </p>
+
+                                <p className="mt-2 text-xs text-slate-500">
+                                    Property
+                                </p>
+
+                                <p className="mt-1 text-sm font-semibold text-slate-800">
+                                    {vacateProperty?.propertyName ||
+                                        "Property"}
+                                </p>
+
+                            </div>
+
+                            {/* Date */}
+                            <div>
+                                <label className="mb-2 block text-sm font-medium text-slate-700">
+                                    Vacate Date
+                                </label>
+
+                                <input
+                                    type="date"
+                                    value={vacateDate}
+                                    min={
+                                        new Date()
+                                            .toISOString()
+                                            .split(
+                                                "T"
+                                            )[0]
+                                    }
+                                    onChange={(e) =>
+                                        setVacateDate(
+                                            e.target.value
+                                        )
+                                    }
+                                    className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-100"
+                                />
+
+                                <p className="mt-2 text-xs text-slate-500">
+                                    The tenant will remain linked until this
+                                    date. When the date arrives, the backend
+                                    will automatically remove the tenant
+                                    access and make the property available.
+                                </p>
+                            </div>
+
+                            {/* Preview */}
+                            {vacateDate && (
+                                <div className="rounded-lg border border-orange-200 bg-orange-50 p-4">
+
+                                    <p className="text-xs font-medium text-orange-700">
+                                        Tenant will receive:
+                                    </p>
+
+                                    <p className="mt-2 text-sm leading-6 text-orange-800">
+                                        You are required to vacate the
+                                        property on{" "}
+                                        <strong>
+                                            {formatVacateDate(
+                                                vacateDate
+                                            )}
+                                        </strong>
+                                        . Your property access will end on
+                                        this date.
+                                    </p>
+
+                                </div>
+                            )}
+
+                            {/* Buttons */}
+                            <div className="flex justify-end gap-3 pt-2">
+
+                                <button
+                                    type="button"
+                                    onClick={
+                                        closeVacateModal
+                                    }
+                                    disabled={
+                                        vacateLoading
+                                    }
+                                    className="rounded-lg border border-slate-200 px-5 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+
+                                <button
+                                    type="submit"
+                                    disabled={
+                                        vacateLoading ||
+                                        !vacateDate
+                                    }
+                                    className="rounded-lg bg-orange-600 px-5 py-3 text-sm font-medium text-white hover:bg-orange-700 disabled:cursor-not-allowed disabled:opacity-50"
+                                >
+                                    {vacateLoading
+                                        ? "Sending..."
+                                        : "Send Vacate Notice"}
                                 </button>
 
                             </div>

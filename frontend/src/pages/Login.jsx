@@ -129,7 +129,7 @@ const Login = () => {
                         <input
                             type="password"
                             required
-                            placeholder="•Enter your password"
+                            placeholder="Enter your password"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full px-4 py-2.5 border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 transition"

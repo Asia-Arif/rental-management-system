@@ -95,6 +95,33 @@ const propertySchema = new mongoose.Schema(
             enum: ["BeforeDue", "Overdue", null],
             default: null,
         },
+
+        // ==========================================
+        // Tenant Leave Request
+        // ==========================================
+        leaveRequest: {
+            type: String,
+            enum: ["Pending", "Accepted", "Rejected", null],
+            default: null,
+        },
+
+        leaveRequestDate: {
+            type: Date,
+            default: null,
+        },
+
+        // ==========================================
+        // Scheduled Vacate Notice
+        // ==========================================
+        vacateDate: {
+            type: Date,
+            default: null,
+        },
+
+        vacateNoticeSent: {
+            type: Boolean,
+            default: false,
+        },
     },
     {
         timestamps: true,
