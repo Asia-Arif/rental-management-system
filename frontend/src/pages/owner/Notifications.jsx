@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -116,9 +117,8 @@ const Notifications = () => {
         } catch (error) {
             console.error("Mark notification as read error:", error);
 
-            alert(
-                error.message || "Failed to mark notification as read"
-            );
+
+            toast.error(error.message || "Failed to mark notification as read");
         } finally {
             setUpdatingId(null);
         }
@@ -166,10 +166,9 @@ const Notifications = () => {
                 error
             );
 
-            alert(
-                error.message ||
-                "Failed to mark all notifications as read"
-            );
+
+
+            toast.error(error.message || "Failed to mark all notifications as read");
         }
     };
 
@@ -321,9 +320,12 @@ const Notifications = () => {
                             </div>
 
                             <button
-                                onClick={() =>
-                                    navigate("/login")
-                                }
+                                onClick={() => {
+                                    localStorage.removeItem("token");
+                                    localStorage.removeItem("user");
+                                    toast.success("Logged out successfully.");
+                                    navigate("/login");
+                                }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
                             >
                                 Logout
@@ -570,11 +572,10 @@ const Notifications = () => {
                                         (notification) => (
                                             <div
                                                 key={notification._id}
-                                                className={`flex flex-col gap-4 border-b border-slate-100 px-6 py-5 transition last:border-0 md:flex-row md:items-center ${
-                                                    !notification.read
+                                                className={`flex flex-col gap-4 border-b border-slate-100 px-6 py-5 transition last:border-0 md:flex-row md:items-center ${!notification.read
                                                         ? "bg-blue-50/40"
                                                         : "bg-white"
-                                                }`}
+                                                    }`}
                                             >
 
                                                 {/* Icon */}

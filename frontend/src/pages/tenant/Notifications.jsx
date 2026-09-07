@@ -11,6 +11,7 @@ import {
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const Notifications = () => {
     const navigate = useNavigate();
@@ -98,7 +99,7 @@ const Notifications = () => {
             if (!response.ok) {
                 throw new Error(
                     data.message ||
-                        "Failed to mark notification as read"
+                    "Failed to mark notification as read"
                 );
             }
 
@@ -106,9 +107,9 @@ const Notifications = () => {
                 previousNotifications.map((notification) =>
                     notification._id === id
                         ? {
-                              ...notification,
-                              read: true,
-                          }
+                            ...notification,
+                            read: true,
+                        }
                         : notification
                 )
             );
@@ -118,9 +119,9 @@ const Notifications = () => {
                 error
             );
 
-            alert(
+            toast.error(
                 error.message ||
-                    "Failed to mark notification as read"
+                "Failed to mark notification as read"
             );
         } finally {
             setMarkingId(null);
@@ -154,7 +155,7 @@ const Notifications = () => {
             if (!response.ok) {
                 throw new Error(
                     data.message ||
-                        "Failed to mark all notifications as read"
+                    "Failed to mark all notifications as read"
                 );
             }
 
@@ -170,9 +171,9 @@ const Notifications = () => {
                 error
             );
 
-            alert(
+            toast.error(
                 error.message ||
-                    "Failed to mark all notifications as read"
+                "Failed to mark all notifications as read"
             );
         } finally {
             setMarkingAll(false);
@@ -206,7 +207,7 @@ const Notifications = () => {
             if (!response.ok) {
                 throw new Error(
                     data.message ||
-                        "Failed to delete notification"
+                    "Failed to delete notification"
                 );
             }
 
@@ -223,9 +224,9 @@ const Notifications = () => {
                 error
             );
 
-            alert(
+            toast.error(
                 error.message ||
-                    "Failed to delete notification"
+                "Failed to delete notification"
             );
         } finally {
             setDeletingId(null);
@@ -341,6 +342,7 @@ const Notifications = () => {
                                 onClick={() => {
                                     localStorage.removeItem("token");
                                     localStorage.removeItem("user");
+                                    toast.success("Logged out successfully.");
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
@@ -433,11 +435,10 @@ const Notifications = () => {
 
                                             <div
                                                 key={notification._id}
-                                                className={`p-6 transition hover:bg-slate-50 ${
-                                                    !notification.read
+                                                className={`p-6 transition hover:bg-slate-50 ${!notification.read
                                                         ? "bg-blue-50/40"
                                                         : "bg-white"
-                                                }`}
+                                                    }`}
                                             >
 
                                                 <div className="flex gap-4">
@@ -463,11 +464,10 @@ const Notifications = () => {
                                                                 <div className="flex items-center gap-2">
 
                                                                     <h3
-                                                                        className={`font-semibold ${
-                                                                            notification.read
+                                                                        className={`font-semibold ${notification.read
                                                                                 ? "text-slate-700"
                                                                                 : "text-slate-900"
-                                                                        }`}
+                                                                            }`}
                                                                     >
                                                                         {
                                                                             notification.title
@@ -531,7 +531,7 @@ const Notifications = () => {
                                                                         <FiCheck size={14} />
 
                                                                         {markingId ===
-                                                                        notification._id
+                                                                            notification._id
                                                                             ? "Updating..."
                                                                             : "Mark as Read"}
 
@@ -557,7 +557,7 @@ const Notifications = () => {
                                                                     <FiTrash2 size={14} />
 
                                                                     {deletingId ===
-                                                                    notification._id
+                                                                        notification._id
                                                                         ? "Deleting..."
                                                                         : "Delete"}
 

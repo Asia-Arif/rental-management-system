@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -43,6 +44,9 @@ const Login = () => {
             localStorage.setItem('token', data.token);
             localStorage.setItem('user', JSON.stringify(data.user));
 
+            // Login success toast
+            toast.success('Login successful! 🎉');
+
             if (data.user.role === 'owner') {
                 navigate('/owner/dashboard');
             } else {
@@ -51,6 +55,9 @@ const Login = () => {
 
         } catch (error) {
             setError(error.message);
+
+            // Login error toast
+            toast.error(error.message);
         } finally {
             setLoading(false);
         }
@@ -79,10 +86,11 @@ const Login = () => {
                     <button
                         type="button"
                         onClick={() => setRole('owner')}
-                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${role === 'owner'
+                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${
+                            role === 'owner'
                                 ? 'bg-indigo-600 text-white shadow-sm'
                                 : 'text-slate-600'
-                            }`}
+                        }`}
                     >
                         Landlord / Owner
                     </button>
@@ -90,10 +98,11 @@ const Login = () => {
                     <button
                         type="button"
                         onClick={() => setRole('tenant')}
-                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${role === 'tenant'
+                        className={`flex-1 py-2 text-sm font-semibold rounded-lg transition ${
+                            role === 'tenant'
                                 ? 'bg-indigo-600 text-white shadow-sm'
                                 : 'text-slate-600'
-                            }`}
+                        }`}
                     >
                         Tenant
                     </button>
@@ -145,9 +154,10 @@ const Login = () => {
                     >
                         {loading
                             ? 'Signing In...'
-                            : `Sign In as ${role === 'owner'
-                                ? 'Landlord'
-                                : 'Tenant'
+                            : `Sign In as ${
+                                role === 'owner'
+                                    ? 'Landlord'
+                                    : 'Tenant'
                             }`}
                     </button>
 

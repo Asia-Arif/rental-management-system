@@ -9,6 +9,7 @@ import {
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const MyProperty = () => {
     const navigate = useNavigate();
@@ -155,6 +156,7 @@ const MyProperty = () => {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        toast.success("Logged out successfully.");
         navigate("/login");
     };
 

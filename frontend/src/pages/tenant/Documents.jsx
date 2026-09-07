@@ -10,6 +10,7 @@ import {
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -79,7 +80,7 @@ const Documents = () => {
     // ============================================
     const handleView = async (doc) => {
         if (!doc?._id) {
-            alert("Document is not available.");
+            toast.error("Document is not available.");
             return;
         }
 
@@ -89,7 +90,7 @@ const Documents = () => {
             const token = localStorage.getItem("token");
 
             if (!token) {
-                alert("Please login first.");
+                toast.error("Please login first.");
                 return;
             }
 
@@ -143,9 +144,7 @@ const Documents = () => {
         } catch (err) {
             console.error("View PDF error:", err);
 
-            alert(
-                err.message || "Unable to open the PDF."
-            );
+            toast.error( err.message || "Unable to open the PDF." );
         } finally {
             setViewingId(null);
         }
@@ -156,7 +155,7 @@ const Documents = () => {
     // ============================================
     const handleDownload = async (doc) => {
         if (!doc?._id) {
-            alert("Document is not available.");
+            toast.error("Document is not available.");
             return;
         }
 
@@ -166,7 +165,7 @@ const Documents = () => {
             const token = localStorage.getItem("token");
 
             if (!token) {
-                alert("Please login first.");
+                toast.error("Please login first.");
                 return;
             }
 
@@ -231,10 +230,7 @@ const Documents = () => {
                 err
             );
 
-            alert(
-                err.message ||
-                    "Unable to download the PDF."
-            );
+            toast.error( err.message || "Unable to download the PDF." );
         } finally {
             setDownloadingId(null);
         }
@@ -246,6 +242,7 @@ const Documents = () => {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        toast.success("Logged out successfully.");
         navigate("/login");
     };
 

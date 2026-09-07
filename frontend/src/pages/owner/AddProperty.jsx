@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
+import toast from "react-hot-toast";
 import Sidebar from "../../components/Sidebar";
 
 const AddProperty = () => {
@@ -32,7 +33,7 @@ const AddProperty = () => {
         const token = localStorage.getItem("token");
 
         if (!token) {
-            alert("Please login first.");
+            toast.error("Please login first.");
             navigate("/login");
             return;
         }
@@ -69,13 +70,15 @@ const AddProperty = () => {
                 );
             }
 
-            alert("Property added successfully!");
+            toast.success("Property added successfully! 🎉");
 
             navigate("/owner/properties");
 
         } catch (error) {
             console.error("Add property error:", error);
-            alert(error.message || "Unable to connect to server.");
+            toast.error(
+                error.message || "Unable to connect to server."
+            );
         } finally {
             setLoading(false);
         }
@@ -121,9 +124,12 @@ const AddProperty = () => {
                             </div>
 
                             <button
+                                
+
                                 onClick={() => {
                                     localStorage.removeItem("token");
                                     localStorage.removeItem("user");
+                                    toast.success("Logged out successfully.");
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"

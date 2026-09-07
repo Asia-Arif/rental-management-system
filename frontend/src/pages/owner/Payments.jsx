@@ -9,6 +9,7 @@ import {
     Search,
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -358,6 +359,7 @@ const Payments = () => {
                                     localStorage.removeItem(
                                         "user"
                                     );
+                                    toast.success("Logged out successfully.");
 
                                     navigate("/login");
                                 }}

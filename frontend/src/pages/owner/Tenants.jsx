@@ -11,6 +11,7 @@ import {
     MdCancel,
 } from "react-icons/md";
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const Tenants = () => {
     const navigate = useNavigate();
@@ -289,10 +290,8 @@ const Tenants = () => {
                 );
             }
 
-            alert(
-                data.message ||
-                    "Leave request accepted successfully."
-            );
+            
+            toast.success( data.message || "Leave request accepted successfully." );
 
             await fetchData();
         } catch (error) {
@@ -301,10 +300,9 @@ const Tenants = () => {
                 error
             );
 
-            alert(
-                error.message ||
-                    "Unable to accept leave request"
-            );
+            
+
+            toast.error( error.message || "Unable to accept leave request" );
         } finally {
             setLeaveActionLoading("");
         }
@@ -354,10 +352,9 @@ const Tenants = () => {
                 );
             }
 
-            alert(
-                data.message ||
-                    "Leave request rejected successfully."
-            );
+            
+
+            toast.success( data.message || "Leave request rejected successfully." );
 
             await fetchData();
         } catch (error) {
@@ -366,10 +363,9 @@ const Tenants = () => {
                 error
             );
 
-            alert(
-                error.message ||
-                    "Unable to reject leave request"
-            );
+            
+
+            toast.error( error.message || "Unable to reject leave request" );
         } finally {
             setLeaveActionLoading("");
         }
@@ -549,6 +545,7 @@ const Tenants = () => {
                                     localStorage.removeItem(
                                         "user"
                                     );
+                                    toast.success("Logged out successfully.");
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
@@ -922,16 +919,18 @@ const Tenants = () => {
                                                                 )}
 
                                                             {/* View */}
-                                                            <button
-                                                                onClick={() =>
-                                                                    alert(
-                                                                        `Viewing ${tenant.name}`
-                                                                    )
-                                                                }
-                                                                className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
-                                                            >
-                                                                View
-                                                            </button>
+                                                            {!tenant.vacateDate && (
+                                                                <button
+                                                                    onClick={() =>
+                                                                        alert(
+                                                                            `Viewing ${tenant.name}`
+                                                                        )
+                                                                    }
+                                                                    className="rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                                                                >
+                                                                    View
+                                                                </button>
+                                                            )}
 
                                                         </div>
 

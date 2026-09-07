@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
 
 const Register = () => {
     const [name, setName] = useState("");
@@ -39,11 +40,12 @@ const Register = () => {
                 throw new Error(data.message || "Registration failed");
             }
 
-            alert("Account created successfully!");
+            toast.success("Account created successfully! 🎉");
 
             navigate("/login");
         } catch (error) {
             setError(error.message);
+            toast.error(error.message);
         } finally {
             setLoading(false);
         }

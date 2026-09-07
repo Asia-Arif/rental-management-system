@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -217,6 +218,7 @@ const Maintenance = () => {
                                 onClick={() => {
                                     localStorage.removeItem("token");
                                     localStorage.removeItem("user");
+                                    toast.success("Logged out successfully.");
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"

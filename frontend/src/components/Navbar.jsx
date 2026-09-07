@@ -1,10 +1,14 @@
 import { useNavigate } from "react-router-dom";
 import { FaBell } from "react-icons/fa";
+import toast from "react-hot-toast";
 
 const Navbar = ({ role }) => {
     const navigate = useNavigate();
 
     const handleLogout = () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+        toast.success("Logged out successfully.");
         navigate("/login");
     };
 

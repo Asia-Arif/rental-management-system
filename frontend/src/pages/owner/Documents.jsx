@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
@@ -11,6 +12,9 @@ import {
     Eye,
     FilePenLine,
 } from "lucide-react";
+
+import toast from "react-hot-toast";
+
 import Sidebar from "../../components/Sidebar";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -210,7 +214,7 @@ const Documents = () => {
             const token = localStorage.getItem("token");
 
             if (!token) {
-                alert("Please login first.");
+                toast.error("Please login first.");
                 return;
             }
 
@@ -259,7 +263,7 @@ const Documents = () => {
         } catch (err) {
             console.error("View PDF error:", err);
 
-            alert(
+            toast.error(
                 err.message || "Unable to open the PDF."
             );
         } finally {
@@ -278,7 +282,7 @@ const Documents = () => {
             const token = localStorage.getItem("token");
 
             if (!token) {
-                alert("Please login first.");
+                toast.error("Please login first.");
                 return;
             }
 
@@ -334,7 +338,7 @@ const Documents = () => {
                 err
             );
 
-            alert(
+            toast.error(
                 err.message ||
                     "Unable to download the PDF."
             );
@@ -350,6 +354,7 @@ const Documents = () => {
     const handleLogout = () => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
+        toast.success("Logged out successfully.");
 
         navigate("/login");
     };
@@ -600,3 +605,4 @@ const Documents = () => {
 };
 
 export default Documents;
+

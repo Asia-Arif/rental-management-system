@@ -308,6 +308,7 @@ const Payments = () => {
                                     localStorage.removeItem(
                                         "user"
                                     );
+                                    toast.success("Logged out successfully.");
 
                                     navigate("/login");
                                 }}

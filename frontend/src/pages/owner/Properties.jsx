@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/Sidebar";
+import toast from "react-hot-toast";
 import {
     FiHome,
     FiPlus,
@@ -105,10 +106,10 @@ const Properties = () => {
                 )
             );
 
-            alert("Property deleted successfully.");
+            toast.success("Property deleted successfully.");
         } catch (error) {
             console.error("Delete property error:", error);
-            alert(error.message || "Unable to delete property.");
+            toast.error(error.message || "Unable to delete property.");
         }
     };
 
@@ -188,6 +189,7 @@ const Properties = () => {
                                 onClick={() => {
                                     localStorage.removeItem("token");
                                     localStorage.removeItem("user");
+                                    toast.success("Logged out successfully.");
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
