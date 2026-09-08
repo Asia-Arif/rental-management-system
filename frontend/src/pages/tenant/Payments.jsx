@@ -8,6 +8,7 @@ import {
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import { toast } from "react-hot-toast";
 
 const Payments = () => {
     const navigate = useNavigate();

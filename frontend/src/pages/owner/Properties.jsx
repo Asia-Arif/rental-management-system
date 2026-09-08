@@ -99,7 +99,6 @@ const Properties = () => {
                 );
             }
 
-            // Remove deleted property from current list
             setProperties((prevProperties) =>
                 prevProperties.filter(
                     (property) => property._id !== propertyId
@@ -109,7 +108,9 @@ const Properties = () => {
             toast.success("Property deleted successfully.");
         } catch (error) {
             console.error("Delete property error:", error);
-            toast.error(error.message || "Unable to delete property.");
+            toast.error(
+                error.message || "Unable to delete property."
+            );
         }
     };
 
@@ -122,7 +123,9 @@ const Properties = () => {
             property.address?.toLowerCase().includes(searchText);
 
         const status =
-            property.status === "Occupied" ? "Occupied" : "Vacant";
+            property.status === "Occupied"
+                ? "Occupied"
+                : "Vacant";
 
         const matchesFilter =
             filter === "All" || status === filter;
@@ -189,7 +192,9 @@ const Properties = () => {
                                 onClick={() => {
                                     localStorage.removeItem("token");
                                     localStorage.removeItem("user");
-                                    toast.success("Logged out successfully.");
+                                    toast.success(
+                                        "Logged out successfully."
+                                    );
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
@@ -362,12 +367,14 @@ const Properties = () => {
 
                                             <span
                                                 className={`rounded-full px-3 py-1 text-xs font-medium ${
-                                                    property.status === "Occupied"
+                                                    property.status ===
+                                                    "Occupied"
                                                         ? "bg-green-100 text-green-700"
                                                         : "bg-orange-100 text-orange-700"
                                                 }`}
                                             >
-                                                {property.status === "Available"
+                                                {property.status ===
+                                                "Available"
                                                     ? "Vacant"
                                                     : property.status}
                                             </span>
@@ -449,10 +456,11 @@ const Properties = () => {
                                                 View Details
                                             </button>
 
+                                            {/* Updated Edit Button */}
                                             <button
                                                 onClick={() =>
                                                     navigate(
-                                                        `/owner/properties/${property._id}/edit`
+                                                        `/owner/add-property/${property._id}`
                                                     )
                                                 }
                                                 className="rounded-lg bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-100"

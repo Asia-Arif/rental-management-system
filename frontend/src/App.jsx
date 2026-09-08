@@ -1,4 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+    BrowserRouter,
+    Routes,
+    Route,
+    Navigate,
+} from "react-router-dom";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -12,7 +17,6 @@ import Maintenance from "./pages/owner/Maintenance";
 import Notifications from "./pages/owner/Notifications";
 import Documents from "./pages/owner/Documents";
 import PropertyDetails from "./pages/owner/PropertyDetails";
-import EditProperty from "./pages/owner/EditProperty";
 
 import TenantDashboard from "./pages/tenant/TenantDashboard";
 import JoinProperty from "./pages/tenant/JoinProperty";
@@ -24,115 +28,135 @@ import TenantDocuments from "./pages/tenant/Documents";
 // import TenantReceipts from "./pages/tenant/Receipts";
 
 function App() {
-  return (
-    <BrowserRouter>
-      <Routes>
+    return (
+        <BrowserRouter>
+            <Routes>
 
-        {/* Authentication */}
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
+                {/* Authentication */}
 
-        {/* Owner */}
-        <Route
-          path="/owner/dashboard"
-          element={<OwnerDashboard />}
-        />
+                <Route
+                    path="/login"
+                    element={<Login />}
+                />
 
-        <Route
-          path="/owner/properties"
-          element={<Properties />}
-        />
+                <Route
+                    path="/register"
+                    element={<Register />}
+                />
 
-        <Route
-          path="/owner/add-property"
-          element={<AddProperty />}
-        />
+                {/* ================= OWNER ================= */}
 
-        <Route
-          path="/owner/tenants"
-          element={<Tenants />}
-        />
+                <Route
+                    path="/owner/dashboard"
+                    element={<OwnerDashboard />}
+                />
 
-        <Route
-          path="/owner/payments"
-          element={<Payments />}
-        />
+                <Route
+                    path="/owner/properties"
+                    element={<Properties />}
+                />
 
-        <Route
-          path="/owner/maintenance"
-          element={<Maintenance />}
-        />
+                {/* Add Property */}
+                <Route
+                    path="/owner/add-property"
+                    element={<AddProperty />}
+                />
 
-        <Route
-          path="/owner/notifications"
-          element={<Notifications />}
-        />
+                {/* Edit Property - Same AddProperty Page */}
+                <Route
+                    path="/owner/add-property/:id"
+                    element={<AddProperty />}
+                />
 
-        <Route
-          path="/owner/documents"
-          element={<Documents />}
-        />
+                <Route
+                    path="/owner/tenants"
+                    element={<Tenants />}
+                />
 
-        <Route
-    path="/owner/properties/:id"
-    element={<PropertyDetails />}
-/>
+                <Route
+                    path="/owner/payments"
+                    element={<Payments />}
+                />
 
-<Route
-    path="/owner/properties/:id/edit"
-    element={<EditProperty />}
-/>
+                <Route
+                    path="/owner/maintenance"
+                    element={<Maintenance />}
+                />
 
-        {/* Tenant */}
-        <Route
-          path="/tenant/dashboard"
-          element={<TenantDashboard />}
-        />
+                <Route
+                    path="/owner/notifications"
+                    element={<Notifications />}
+                />
 
-        <Route
-          path="/tenant/join-property"
-          element={<JoinProperty />}
-        />
+                <Route
+                    path="/owner/documents"
+                    element={<Documents />}
+                />
 
-        <Route
-          path="/tenant/my-property"
-          element={<MyProperty />}
-        />
+                {/* Property Details */}
+                <Route
+                    path="/owner/properties/:id"
+                    element={<PropertyDetails />}
+                />
 
-        <Route
-          path="/tenant/rent-payment"
-          element={<TenantPayments />}
-        />
+                {/* ================= TENANT ================= */}
 
-        <Route
-          path="/tenant/maintenance"
-          element={<TenantMaintenance />}
-        />
+                <Route
+                    path="/tenant/dashboard"
+                    element={<TenantDashboard />}
+                />
 
-        <Route
-          path="/tenant/notifications"
-          element={<TenantNotifications />}
-        />
+                <Route
+                    path="/tenant/join-property"
+                    element={<JoinProperty />}
+                />
 
-        <Route
-          path="/tenant/documents"
-          element={<TenantDocuments />}
-        />
+                <Route
+                    path="/tenant/my-property"
+                    element={<MyProperty />}
+                />
 
-        {/* <Route
-          path="/tenant/receipts"
-          element={<TenantReceipts />}
-        /> */}
+                <Route
+                    path="/tenant/rent-payment"
+                    element={<TenantPayments />}
+                />
 
-        {/* Default Route - ALWAYS LAST */}
-        <Route
-          path="*"
-          element={<Navigate to="/login" replace />}
-        />
+                <Route
+                    path="/tenant/maintenance"
+                    element={<TenantMaintenance />}
+                />
 
-      </Routes>
-    </BrowserRouter>
-  );
+                <Route
+                    path="/tenant/notifications"
+                    element={<TenantNotifications />}
+                />
+
+                <Route
+                    path="/tenant/documents"
+                    element={<TenantDocuments />}
+                />
+
+                {/* 
+                <Route
+                    path="/tenant/receipts"
+                    element={<TenantReceipts />}
+                />
+                */}
+
+                {/* Default Route */}
+                <Route
+                    path="*"
+                    element={
+                        <Navigate
+                            to="/login"
+                            replace
+                        />
+                    }
+                />
+
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;

@@ -1,11 +1,14 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { Bell } from "lucide-react";
 import toast from "react-hot-toast";
 import Sidebar from "../../components/Sidebar";
 
 const AddProperty = () => {
     const navigate = useNavigate();
+    const { id } = useParams();
+
+    const isEditMode = Boolean(id);
 
     const [formData, setFormData] = useState({
         propertyName: "",
@@ -19,6 +22,81 @@ const AddProperty = () => {
     });
 
     const [loading, setLoading] = useState(false);
+    const [fetchingProperty, setFetchingProperty] = useState(false);
+
+    // Fetch property data when editing
+    useEffect(() => {
+        if (!id) {
+            return;
+        }
+
+        const fetchProperty = async () => {
+            try {
+                const token = localStorage.getItem("token");
+
+                if (!token) {
+                    toast.error("Please login first.");
+                    navigate("/login");
+                    return;
+                }
+
+                setFetchingProperty(true);
+
+                const response = await fetch(
+                    `${import.meta.env.VITE_API_URL}/properties/${id}`,
+                    {
+                        method: "GET",
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                        },
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.message || "Failed to fetch property"
+                    );
+                }
+
+                const property = data.property;
+
+                setFormData({
+                    propertyName: property.name || "",
+                    propertyType: property.propertyType || "",
+                    location: property.address || "",
+                    city: property.city || "",
+                    bedrooms:
+                        property.bedrooms !== undefined &&
+                        property.bedrooms !== null
+                            ? property.bedrooms
+                            : "",
+                    bathrooms:
+                        property.bathrooms !== undefined &&
+                        property.bathrooms !== null
+                            ? property.bathrooms
+                            : "",
+                    monthlyRent:
+                        property.rent !== undefined &&
+                        property.rent !== null
+                            ? property.rent
+                            : "",
+                    description: property.description || "",
+                });
+            } catch (error) {
+                console.error("Get property error:", error);
+                toast.error(
+                    error.message || "Unable to load property."
+                );
+                navigate("/owner/properties");
+            } finally {
+                setFetchingProperty(false);
+            }
+        };
+
+        fetchProperty();
+    }, [id, navigate]);
 
     const handleChange = (e) => {
         setFormData({
@@ -41,24 +119,28 @@ const AddProperty = () => {
         setLoading(true);
 
         try {
+            const requestBody = {
+                name: formData.propertyName,
+                address: formData.location,
+                city: formData.city,
+                propertyType: formData.propertyType,
+                rent: Number(formData.monthlyRent),
+                bedrooms: Number(formData.bedrooms),
+                bathrooms: Number(formData.bathrooms),
+                description: formData.description,
+            };
+
             const response = await fetch(
-                `${import.meta.env.VITE_API_URL}/properties`,
+                isEditMode
+                    ? `${import.meta.env.VITE_API_URL}/properties/${id}`
+                    : `${import.meta.env.VITE_API_URL}/properties`,
                 {
-                    method: "POST",
+                    method: isEditMode ? "PUT" : "POST",
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
-                    body: JSON.stringify({
-                        name: formData.propertyName,
-                        address: formData.location,
-                        city: formData.city,
-                        propertyType: formData.propertyType,
-                        rent: Number(formData.monthlyRent),
-                        bedrooms: Number(formData.bedrooms),
-                        bathrooms: Number(formData.bathrooms),
-                        description: formData.description,
-                    }),
+                    body: JSON.stringify(requestBody),
                 }
             );
 
@@ -66,16 +148,28 @@ const AddProperty = () => {
 
             if (!response.ok) {
                 throw new Error(
-                    data.message || "Failed to add property"
+                    data.message ||
+                        (isEditMode
+                            ? "Failed to update property"
+                            : "Failed to add property")
                 );
             }
 
-            toast.success("Property added successfully! 🎉");
+            if (isEditMode) {
+                toast.success("Property updated successfully! 🎉");
+            } else {
+                toast.success("Property added successfully! 🎉");
+            }
 
             navigate("/owner/properties");
-
         } catch (error) {
-            console.error("Add property error:", error);
+            console.error(
+                isEditMode
+                    ? "Update property error:"
+                    : "Add property error:",
+                error
+            );
+
             toast.error(
                 error.message || "Unable to connect to server."
             );
@@ -100,18 +194,24 @@ const AddProperty = () => {
 
                         <div>
                             <h2 className="text-xl font-semibold text-slate-800">
-                                Add Property
+                                {isEditMode
+                                    ? "Edit Property"
+                                    : "Add Property"}
                             </h2>
 
                             <p className="text-sm text-slate-500">
-                                Add a new rental property
+                                {isEditMode
+                                    ? "Update your rental property information"
+                                    : "Add a new rental property"}
                             </p>
                         </div>
 
                         <div className="flex items-center gap-4">
 
                             <button
-                                onClick={() => navigate("/owner/notifications")}
+                                onClick={() =>
+                                    navigate("/owner/notifications")
+                                }
                                 className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
                             >
                                 <Bell />
@@ -124,12 +224,12 @@ const AddProperty = () => {
                             </div>
 
                             <button
-                                
-
                                 onClick={() => {
                                     localStorage.removeItem("token");
                                     localStorage.removeItem("user");
-                                    toast.success("Logged out successfully.");
+                                    toast.success(
+                                        "Logged out successfully."
+                                    );
                                     navigate("/login");
                                 }}
                                 className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
@@ -152,244 +252,263 @@ const AddProperty = () => {
                         <div className="mb-8">
 
                             <h1 className="text-2xl font-bold text-slate-800">
-                                Property Information
+                                {isEditMode
+                                    ? "Edit Property Information"
+                                    : "Property Information"}
                             </h1>
 
                             <p className="mt-1 text-sm text-slate-500">
-                                Enter the details of your rental property.
+                                {isEditMode
+                                    ? "Update the details of your rental property."
+                                    : "Enter the details of your rental property."}
                             </p>
 
                         </div>
 
-                        <form
-                            onSubmit={handleSubmit}
-                            className="rounded-xl border border-slate-200 bg-white shadow-sm"
-                        >
-
-                            {/* Basic Information */}
-                            <div className="border-b border-slate-200 p-6">
-
-                                <h2 className="text-lg font-semibold text-slate-800">
-                                    Basic Information
-                                </h2>
-
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Provide basic details about the property.
+                        {/* Loading Property */}
+                        {fetchingProperty ? (
+                            <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+                                <p className="text-sm text-slate-500">
+                                    Loading property information...
                                 </p>
+                            </div>
+                        ) : (
+                            <form
+                                onSubmit={handleSubmit}
+                                className="rounded-xl border border-slate-200 bg-white shadow-sm"
+                            >
 
-                                <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
+                                {/* Basic Information */}
+                                <div className="border-b border-slate-200 p-6">
 
-                                    {/* Property Name */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Property Name
-                                        </label>
+                                    <h2 className="text-lg font-semibold text-slate-800">
+                                        Basic Information
+                                    </h2>
 
-                                        <input
-                                            type="text"
-                                            name="propertyName"
-                                            value={formData.propertyName}
-                                            onChange={handleChange}
-                                            placeholder="e.g. Green Villa"
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        />
-                                    </div>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Provide basic details about the property.
+                                    </p>
 
-                                    {/* Property Type */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Property Type
-                                        </label>
+                                    <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-2">
 
-                                        <select
-                                            name="propertyType"
-                                            value={formData.propertyType}
-                                            onChange={handleChange}
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
-                                        >
-                                            <option value="">
-                                                Select property type
-                                            </option>
+                                        {/* Property Name */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Property Name
+                                            </label>
 
-                                            <option value="House">
-                                                House
-                                            </option>
+                                            <input
+                                                type="text"
+                                                name="propertyName"
+                                                value={formData.propertyName}
+                                                onChange={handleChange}
+                                                placeholder="e.g. Green Villa"
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                        </div>
 
-                                            <option value="Apartment">
-                                                Apartment
-                                            </option>
+                                        {/* Property Type */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Property Type
+                                            </label>
 
-                                            <option value="Room">
-                                                Room
-                                            </option>
+                                            <select
+                                                name="propertyType"
+                                                value={formData.propertyType}
+                                                onChange={handleChange}
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm outline-none focus:border-blue-500"
+                                            >
+                                                <option value="">
+                                                    Select property type
+                                                </option>
 
-                                            <option value="Shop">
-                                                Shop
-                                            </option>
+                                                <option value="House">
+                                                    House
+                                                </option>
 
-                                            <option value="Other">
-                                                Other
-                                            </option>
-                                        </select>
-                                    </div>
+                                                <option value="Apartment">
+                                                    Apartment
+                                                </option>
 
-                                    {/* Location */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Address
-                                        </label>
+                                                <option value="Room">
+                                                    Room
+                                                </option>
 
-                                        <input
-                                            type="text"
-                                            name="location"
-                                            value={formData.location}
-                                            onChange={handleChange}
-                                            placeholder="e.g. Street 5, Bahria Town"
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        />
-                                    </div>
+                                                <option value="Shop">
+                                                    Shop
+                                                </option>
 
-                                    {/* City */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            City
-                                        </label>
+                                                <option value="Other">
+                                                    Other
+                                                </option>
+                                            </select>
+                                        </div>
 
-                                        <input
-                                            type="text"
-                                            name="city"
-                                            value={formData.city}
-                                            onChange={handleChange}
-                                            placeholder="e.g. Rawalpindi"
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        />
+                                        {/* Location */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Address
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="location"
+                                                value={formData.location}
+                                                onChange={handleChange}
+                                                placeholder="e.g. Street 5, Bahria Town"
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                        </div>
+
+                                        {/* City */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                City
+                                            </label>
+
+                                            <input
+                                                type="text"
+                                                name="city"
+                                                value={formData.city}
+                                                onChange={handleChange}
+                                                placeholder="e.g. Rawalpindi"
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                        </div>
+
                                     </div>
 
                                 </div>
 
-                            </div>
+                                {/* Property Details */}
+                                <div className="border-b border-slate-200 p-6">
 
-                            {/* Property Details */}
-                            <div className="border-b border-slate-200 p-6">
+                                    <h2 className="text-lg font-semibold text-slate-800">
+                                        Property Details
+                                    </h2>
 
-                                <h2 className="text-lg font-semibold text-slate-800">
-                                    Property Details
-                                </h2>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Add rooms and rental information.
+                                    </p>
 
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Add rooms and rental information.
-                                </p>
+                                    <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
 
-                                <div className="mt-6 grid grid-cols-1 gap-5 md:grid-cols-3">
+                                        {/* Bedrooms */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Bedrooms
+                                            </label>
 
-                                    {/* Bedrooms */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Bedrooms
-                                        </label>
+                                            <input
+                                                type="number"
+                                                name="bedrooms"
+                                                value={formData.bedrooms}
+                                                onChange={handleChange}
+                                                min="0"
+                                                placeholder="e.g. 3"
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                        </div>
 
-                                        <input
-                                            type="number"
-                                            name="bedrooms"
-                                            value={formData.bedrooms}
-                                            onChange={handleChange}
-                                            min="0"
-                                            placeholder="e.g. 3"
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        />
-                                    </div>
+                                        {/* Bathrooms */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Bathrooms
+                                            </label>
 
-                                    {/* Bathrooms */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Bathrooms
-                                        </label>
+                                            <input
+                                                type="number"
+                                                name="bathrooms"
+                                                value={formData.bathrooms}
+                                                onChange={handleChange}
+                                                min="0"
+                                                placeholder="e.g. 2"
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                        </div>
 
-                                        <input
-                                            type="number"
-                                            name="bathrooms"
-                                            value={formData.bathrooms}
-                                            onChange={handleChange}
-                                            min="0"
-                                            placeholder="e.g. 2"
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        />
-                                    </div>
+                                        {/* Monthly Rent */}
+                                        <div>
+                                            <label className="mb-2 block text-sm font-medium text-slate-700">
+                                                Monthly Rent
+                                            </label>
 
-                                    {/* Monthly Rent */}
-                                    <div>
-                                        <label className="mb-2 block text-sm font-medium text-slate-700">
-                                            Monthly Rent
-                                        </label>
+                                            <input
+                                                type="number"
+                                                name="monthlyRent"
+                                                value={formData.monthlyRent}
+                                                onChange={handleChange}
+                                                min="1"
+                                                placeholder="e.g. 35000"
+                                                required
+                                                className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                            />
+                                        </div>
 
-                                        <input
-                                            type="number"
-                                            name="monthlyRent"
-                                            value={formData.monthlyRent}
-                                            onChange={handleChange}
-                                            min="1"
-                                            placeholder="e.g. 35000"
-                                            required
-                                            className="w-full rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                        />
                                     </div>
 
                                 </div>
 
-                            </div>
+                                {/* Description */}
+                                <div className="border-b border-slate-200 p-6">
 
-                            {/* Description */}
-                            <div className="border-b border-slate-200 p-6">
+                                    <h2 className="text-lg font-semibold text-slate-800">
+                                        Description
+                                    </h2>
 
-                                <h2 className="text-lg font-semibold text-slate-800">
-                                    Description
-                                </h2>
+                                    <p className="mt-1 text-sm text-slate-500">
+                                        Add additional information about the property.
+                                    </p>
 
-                                <p className="mt-1 text-sm text-slate-500">
-                                    Add additional information about the property.
-                                </p>
+                                    <textarea
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                        rows="5"
+                                        placeholder="Describe the property..."
+                                        className="mt-6 w-full resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+                                    />
 
-                                <textarea
-                                    name="description"
-                                    value={formData.description}
-                                    onChange={handleChange}
-                                    rows="5"
-                                    placeholder="Describe the property..."
-                                    className="mt-6 w-full resize-none rounded-lg border border-slate-200 px-4 py-3 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                                />
+                                </div>
 
-                            </div>
+                                {/* Actions */}
+                                <div className="flex flex-col-reverse gap-3 p-6 sm:flex-row sm:justify-end">
 
-                            {/* Actions */}
-                            <div className="flex flex-col-reverse gap-3 p-6 sm:flex-row sm:justify-end">
+                                    <button
+                                        type="button"
+                                        onClick={() =>
+                                            navigate("/owner/properties")
+                                        }
+                                        className="rounded-lg border border-slate-200 px-6 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50"
+                                    >
+                                        Cancel
+                                    </button>
 
-                                <button
-                                    type="button"
-                                    onClick={() => navigate("/owner/properties")}
-                                    className="rounded-lg border border-slate-200 px-6 py-3 text-sm font-medium text-slate-600 hover:bg-slate-50"
-                                >
-                                    Cancel
-                                </button>
+                                    <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
+                                    >
+                                        {loading
+                                            ? isEditMode
+                                                ? "Updating Property..."
+                                                : "Adding Property..."
+                                            : isEditMode
+                                            ? "Update Property"
+                                            : "Add Property"}
+                                    </button>
 
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-blue-400"
-                                >
-                                    {loading
-                                        ? "Adding Property..."
-                                        : "Add Property"}
-                                </button>
+                                </div>
 
-                            </div>
-
-                        </form>
+                            </form>
+                        )}
 
                     </div>
 
