@@ -12,7 +12,7 @@ import {
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
-import { toast } from "react-hot-toast";
+import Navbar from "../../components/Navbar";
 
 const TenantDashboard = () => {
     const navigate = useNavigate();
@@ -442,17 +442,6 @@ const TenantDashboard = () => {
         ).length;
 
     // =====================================================
-    // LOGOUT
-    // =====================================================
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        toast.success("Logged out successfully.");
-
-        navigate("/login");
-    };
-
-    // =====================================================
     // MAIN UI
     // =====================================================
     return (
@@ -464,63 +453,12 @@ const TenantDashboard = () => {
             {/* Main Content */}
             <div className="ml-64">
 
-                {/* Navbar */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
-                    <div className="flex h-full items-center justify-between px-8">
-
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                Tenant Dashboard
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                Welcome back! Manage your rental from here.
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-
-                            {/* Notification */}
-                            <button
-                                onClick={() =>
-                                    navigate(
-                                        "/tenant/notifications"
-                                    )
-                                }
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
-                            >
-                                <FiBell />
-
-                                {unreadNotifications >
-                                    0 && (
-                                    <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-                                        {
-                                            unreadNotifications
-                                        }
-                                    </span>
-                                )}
-                            </button>
-
-                            {/* Profile */}
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                T
-                            </div>
-
-                            {/* Logout */}
-                            <button
-                                onClick={
-                                    handleLogout
-                                }
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-
-                    </div>
-                </header>
+                {/* Common Navbar */}
+                <Navbar
+                    role="tenant"
+                    title="Tenant Dashboard"
+                    subtitle="Welcome back! Manage your rental from here."
+                />
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">

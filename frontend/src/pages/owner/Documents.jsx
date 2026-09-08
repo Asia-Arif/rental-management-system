@@ -1,11 +1,9 @@
-
 import { useEffect, useState } from "react";
 
 import { useNavigate } from "react-router-dom";
 
 import {
     House,
-    Bell,
     FileText,
     Upload,
     Download,
@@ -16,6 +14,7 @@ import {
 import toast from "react-hot-toast";
 
 import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -166,10 +165,12 @@ const Documents = () => {
                 `${API_URL}/documents/upload`,
                 {
                     method: "POST",
+
                     headers: {
                         "Content-Type": "application/json",
                         Authorization: `Bearer ${token}`,
                     },
+
                     body: JSON.stringify({
                         type,
                         fileName: file.name,
@@ -222,6 +223,7 @@ const Documents = () => {
                 `${API_URL}/documents/view/${doc._id}`,
                 {
                     method: "GET",
+
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -290,6 +292,7 @@ const Documents = () => {
                 `${API_URL}/documents/download/${doc._id}`,
                 {
                     method: "GET",
+
                     headers: {
                         Authorization: `Bearer ${token}`,
                     },
@@ -347,18 +350,6 @@ const Documents = () => {
         }
     };
 
-    // ============================================
-    // LOGOUT
-    // ============================================
-
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        toast.success("Logged out successfully.");
-
-        navigate("/login");
-    };
-
     return (
         <div className="min-h-screen bg-slate-50">
             {/* COMMON SIDEBAR */}
@@ -366,46 +357,12 @@ const Documents = () => {
 
             {/* MAIN */}
             <div className="ml-64">
-                {/* HEADER */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-                    <div className="flex h-full items-center justify-between px-8">
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                Documents
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                Manage common rental documents
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-                            <button
-                                onClick={() =>
-                                    navigate(
-                                        "/owner/notifications"
-                                    )
-                                }
-                                className="relative rounded-full p-2 text-slate-600 hover:bg-slate-100"
-                            >
-                                <Bell />
-
-                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-                            </button>
-
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                A
-                            </div>
-
-                            <button
-                                onClick={handleLogout}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    </div>
-                </header>
+                {/* COMMON NAVBAR */}
+                <Navbar
+                    role="owner"
+                    title="Documents"
+                    subtitle="Manage common rental documents"
+                />
 
                 <main className="px-8 pb-10 pt-28">
                     <div className="mb-8">
@@ -419,6 +376,7 @@ const Documents = () => {
                     </div>
 
                     {/* MESSAGES */}
+
                     {message && (
                         <div className="mb-5 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
                             {message}
@@ -432,6 +390,7 @@ const Documents = () => {
                     )}
 
                     {/* DOCUMENT CARDS */}
+
                     <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
                         {documentTypes.map(
                             ({
@@ -443,8 +402,7 @@ const Documents = () => {
                                     getDocument(type);
 
                                 const isUploading =
-                                    uploadingType ===
-                                    type;
+                                    uploadingType === type;
 
                                 const isViewing =
                                     viewingId ===
@@ -460,6 +418,7 @@ const Documents = () => {
                                         className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm"
                                     >
                                         {/* TITLE */}
+
                                         <div className="flex items-center gap-4">
                                             <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
                                                 <Icon
@@ -479,6 +438,7 @@ const Documents = () => {
                                         </div>
 
                                         {/* STATUS */}
+
                                         <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4">
                                             {doc ? (
                                                 <>
@@ -501,6 +461,7 @@ const Documents = () => {
                                                     </div>
 
                                                     {/* VIEW / DOWNLOAD */}
+
                                                     <div className="mt-4 flex gap-2">
                                                         <button
                                                             type="button"
@@ -563,6 +524,7 @@ const Documents = () => {
                                         </div>
 
                                         {/* UPLOAD */}
+
                                         <label className="mt-5 flex cursor-pointer items-center justify-center gap-2 rounded-lg bg-blue-600 px-5 py-3 text-sm font-medium text-white hover:bg-blue-700">
                                             <Upload size={18} />
 
@@ -605,4 +567,3 @@ const Documents = () => {
 };
 
 export default Documents;
-

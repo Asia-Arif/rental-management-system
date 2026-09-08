@@ -2,14 +2,13 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiHome,
-    FiBell,
     FiUser,
     FiClipboard,
     FiLogOut,
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
-import toast from "react-hot-toast";
+import Navbar from "../../components/Navbar";
 
 const MyProperty = () => {
     const navigate = useNavigate();
@@ -152,14 +151,6 @@ const MyProperty = () => {
         }
     };
 
-    // Logout
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        toast.success("Logged out successfully.");
-        navigate("/login");
-    };
-
     return (
         <div className="min-h-screen bg-slate-50">
 
@@ -169,53 +160,12 @@ const MyProperty = () => {
             {/* Main Content */}
             <div className="ml-64">
 
-                {/* Navbar */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
-                    <div className="flex h-full items-center justify-between px-8">
-
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                My Property
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                View your rental property details
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-
-                            {/* Notification */}
-                            <button
-                                onClick={() =>
-                                    navigate(
-                                        "/tenant/notifications"
-                                    )
-                                }
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
-                            >
-                                <FiBell />
-
-                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-                            </button>
-
-                            {/* Profile */}
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                T
-                            </div>
-
-                            {/* Logout */}
-                            <button
-                                onClick={handleLogout}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-                    </div>
-                </header>
+                {/* Common Navbar */}
+                <Navbar
+                    role="tenant"
+                    title="My Property"
+                    subtitle="View your rental property details"
+                />
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
@@ -493,7 +443,7 @@ const MyProperty = () => {
 
                                         </div>
 
-                                        <div className="flex items-center justify-between">
+                                        {/* <div className="flex items-center justify-between">
 
                                             <span className="text-sm text-slate-500">
                                                 Phone
@@ -504,7 +454,7 @@ const MyProperty = () => {
                                                     "Not provided"}
                                             </span>
 
-                                        </div>
+                                        </div> */}
 
                                     </div>
 

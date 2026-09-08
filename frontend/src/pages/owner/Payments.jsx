@@ -9,6 +9,7 @@ import {
     Search,
 } from "lucide-react";
 import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -316,61 +317,12 @@ const Payments = () => {
             {/* Main Content */}
             <div className="ml-64">
 
-                {/* Navbar */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
-                    <div className="flex h-full items-center justify-between px-8">
-
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                Rent Payments
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                Track and manage rental payments
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-
-                            <button
-                                onClick={() =>
-                                    navigate(
-                                        "/owner/notifications"
-                                    )
-                                }
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
-                            >
-                                <Bell size={20} />
-
-                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-                            </button>
-
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                A
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    localStorage.removeItem(
-                                        "token"
-                                    );
-
-                                    localStorage.removeItem(
-                                        "user"
-                                    );
-                                    toast.success("Logged out successfully.");
-
-                                    navigate("/login");
-                                }}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-                    </div>
-                </header>
+                {/* Common Fixed Navbar */}
+                <Navbar
+                    role="owner"
+                    title="Rent Payments"
+                    subtitle="Track and manage rental payments"
+                />
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">

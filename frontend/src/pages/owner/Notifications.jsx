@@ -11,6 +11,7 @@ import {
 } from "react-icons/fa";
 
 import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 import toast from "react-hot-toast";
 
 const Notifications = () => {
@@ -73,7 +74,6 @@ const Notifications = () => {
         fetchNotifications();
     }, [navigate]);
 
-
     // Mark single notification as read
     const markAsRead = async (id) => {
         try {
@@ -117,13 +117,13 @@ const Notifications = () => {
         } catch (error) {
             console.error("Mark notification as read error:", error);
 
-
-            toast.error(error.message || "Failed to mark notification as read");
+            toast.error(
+                error.message || "Failed to mark notification as read"
+            );
         } finally {
             setUpdatingId(null);
         }
     };
-
 
     // Mark all notifications as read
     const markAllAsRead = async () => {
@@ -166,12 +166,12 @@ const Notifications = () => {
                 error
             );
 
-
-
-            toast.error(error.message || "Failed to mark all notifications as read");
+            toast.error(
+                error.message ||
+                "Failed to mark all notifications as read"
+            );
         }
     };
-
 
     // Search + Filter
     const filteredNotifications = notifications.filter(
@@ -197,7 +197,6 @@ const Notifications = () => {
         }
     );
 
-
     // Statistics
     const unreadCount = notifications.filter(
         (notification) => !notification.read
@@ -213,7 +212,6 @@ const Notifications = () => {
             notification.type === "Maintenance"
     ).length;
 
-
     // Notification icon
     const getIcon = (type) => {
         if (type === "Payment") {
@@ -227,7 +225,6 @@ const Notifications = () => {
         return <FaClock />;
     };
 
-
     // Notification icon background
     const getIconBackground = (type) => {
         if (type === "Payment") {
@@ -240,7 +237,6 @@ const Notifications = () => {
 
         return "bg-yellow-100";
     };
-
 
     // Format date
     const formatDate = (date) => {
@@ -258,7 +254,6 @@ const Notifications = () => {
         );
     };
 
-
     // Format time
     const formatTime = (date) => {
         if (!date) {
@@ -274,68 +269,21 @@ const Notifications = () => {
         );
     };
 
-
     return (
         <div className="min-h-screen bg-slate-50">
 
             {/* Common Sidebar */}
             <Sidebar role="owner" />
 
-
             {/* Main Content */}
             <div className="ml-64">
 
-                {/* Navbar */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
-                    <div className="flex h-full items-center justify-between px-8">
-
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                Notifications
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                Stay updated with your property activities
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-
-                            <button
-                                onClick={() =>
-                                    navigate("/owner/notifications")
-                                }
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
-                            >
-                                <FaBell />
-
-                                {unreadCount > 0 && (
-                                    <span className="absolute right-1 top-1 flex h-2.5 w-2.5 rounded-full bg-red-500" />
-                                )}
-                            </button>
-
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                A
-                            </div>
-
-                            <button
-                                onClick={() => {
-                                    localStorage.removeItem("token");
-                                    localStorage.removeItem("user");
-                                    toast.success("Logged out successfully.");
-                                    navigate("/login");
-                                }}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-
-                    </div>
-                </header>
-
+                {/* Common Navbar */}
+                <Navbar
+                    role="owner"
+                    title="Notifications"
+                    subtitle="Stay updated with your property activities"
+                />
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
@@ -366,7 +314,6 @@ const Notifications = () => {
 
                     </div>
 
-
                     {/* Loading */}
                     {loading && (
                         <div className="rounded-xl border border-slate-200 bg-white p-10 text-center shadow-sm">
@@ -376,14 +323,12 @@ const Notifications = () => {
                         </div>
                     )}
 
-
                     {/* Error */}
                     {!loading && error && (
                         <div className="rounded-xl border border-red-200 bg-red-50 p-5 text-sm text-red-600">
                             {error}
                         </div>
                     )}
-
 
                     {!loading && !error && (
                         <>
@@ -418,7 +363,6 @@ const Notifications = () => {
 
                                 </div>
 
-
                                 {/* Unread */}
                                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -446,7 +390,6 @@ const Notifications = () => {
 
                                 </div>
 
-
                                 {/* Payments */}
                                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -473,7 +416,6 @@ const Notifications = () => {
                                     </div>
 
                                 </div>
-
 
                                 {/* Maintenance */}
                                 <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
@@ -503,7 +445,6 @@ const Notifications = () => {
                                 </div>
 
                             </div>
-
 
                             {/* Search + Filter */}
                             <div className="mt-8 flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm md:flex-row">
@@ -544,11 +485,9 @@ const Notifications = () => {
                                     <option value="General">
                                         General
                                     </option>
-
                                 </select>
 
                             </div>
-
 
                             {/* Notifications List */}
                             <div className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -564,7 +503,6 @@ const Notifications = () => {
                                     </p>
 
                                 </div>
-
 
                                 <div>
 
@@ -589,7 +527,6 @@ const Notifications = () => {
                                                     )}
                                                 </div>
 
-
                                                 {/* Notification Details */}
                                                 <div className="flex-1">
 
@@ -609,13 +546,11 @@ const Notifications = () => {
 
                                                     </div>
 
-
                                                     <p className="mt-1 text-sm text-slate-600">
                                                         {
                                                             notification.message
                                                         }
                                                     </p>
-
 
                                                     <div className="mt-2 flex items-center gap-3 text-xs text-slate-400">
 
@@ -648,7 +583,6 @@ const Notifications = () => {
                                                     </div>
 
                                                 </div>
-
 
                                                 {/* Action */}
                                                 <div className="shrink-0">
@@ -685,7 +619,6 @@ const Notifications = () => {
                                     )}
 
                                 </div>
-
 
                                 {/* Empty State */}
                                 {filteredNotifications.length === 0 && (

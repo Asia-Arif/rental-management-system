@@ -2,11 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
     FiHome,
-    FiBell,
     FiInfo,
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -67,7 +67,6 @@ const JoinProperty = () => {
             setJoined(true);
             setProperty(data.property);
             setMessage(data.message || "Property joined successfully!");
-
         } catch (error) {
             console.error("Join property error:", error);
             setMessage(
@@ -87,53 +86,12 @@ const JoinProperty = () => {
             {/* Main Content */}
             <div className="ml-64">
 
-                {/* Navbar */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
-                    <div className="flex h-full items-center justify-between px-8">
-
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                Join Property
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                Connect with your rental property
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-
-                            {/* Notification */}
-                            <button
-                                onClick={() => navigate("/tenant/notifications")}
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
-                            >
-                                <FiBell />
-
-                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-                            </button>
-
-                            {/* Profile */}
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                T
-                            </div>
-
-                            {/* Logout */}
-                            <button
-                                onClick={() => {
-                                    toast.success("Logged out successfully.");
-                                    navigate("/login");
-                                }}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-
-                    </div>
-                </header>
+                {/* Common Navbar */}
+                <Navbar
+                    role="tenant"
+                    title="Join Property"
+                    subtitle="Connect with your rental property"
+                />
 
                 {/* Page Content */}
                 <main className="px-8 pb-10 pt-28">
@@ -210,10 +168,11 @@ const JoinProperty = () => {
                             {/* Message */}
                             {message && (
                                 <div
-                                    className={`mt-5 rounded-lg p-4 text-sm ${joined
+                                    className={`mt-5 rounded-lg p-4 text-sm ${
+                                        joined
                                             ? "border border-green-200 bg-green-50 text-green-700"
                                             : "border border-red-200 bg-red-50 text-red-700"
-                                        }`}
+                                    }`}
                                 >
                                     {message}
                                 </div>

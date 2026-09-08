@@ -1,22 +1,19 @@
 import { useEffect, useState } from "react";
 
-import { useNavigate } from "react-router-dom";
-
 import {
-    FiBell,
     FiFileText,
     FiEye,
     FiDownload,
 } from "react-icons/fi";
 
 import Sidebar from "../../components/Sidebar";
+import Navbar from "../../components/Navbar";
+
 import toast from "react-hot-toast";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
 const Documents = () => {
-    const navigate = useNavigate();
-
     const [documents, setDocuments] = useState([]);
     const [property, setProperty] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -27,6 +24,7 @@ const Documents = () => {
     // ============================================
     // FETCH TENANT DOCUMENTS
     // ============================================
+
     const fetchDocuments = async () => {
         try {
             setLoading(true);
@@ -78,6 +76,7 @@ const Documents = () => {
     // ============================================
     // VIEW PDF
     // ============================================
+
     const handleView = async (doc) => {
         if (!doc?._id) {
             toast.error("Document is not available.");
@@ -144,7 +143,9 @@ const Documents = () => {
         } catch (err) {
             console.error("View PDF error:", err);
 
-            toast.error( err.message || "Unable to open the PDF." );
+            toast.error(
+                err.message || "Unable to open the PDF."
+            );
         } finally {
             setViewingId(null);
         }
@@ -153,6 +154,7 @@ const Documents = () => {
     // ============================================
     // DOWNLOAD PDF
     // ============================================
+
     const handleDownload = async (doc) => {
         if (!doc?._id) {
             toast.error("Document is not available.");
@@ -212,7 +214,6 @@ const Documents = () => {
             fileName = fileName.replace(/\.pdf$/i, "");
 
             link.download = `${fileName}.pdf`;
-
             link.style.display = "none";
 
             window.document.body.appendChild(link);
@@ -230,25 +231,18 @@ const Documents = () => {
                 err
             );
 
-            toast.error( err.message || "Unable to download the PDF." );
+            toast.error(
+                err.message || "Unable to download the PDF."
+            );
         } finally {
             setDownloadingId(null);
         }
     };
 
     // ============================================
-    // LOGOUT
-    // ============================================
-    const handleLogout = () => {
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        toast.success("Logged out successfully.");
-        navigate("/login");
-    };
-
-    // ============================================
     // PAGE
     // ============================================
+
     return (
         <div className="min-h-screen bg-slate-50">
 
@@ -258,57 +252,12 @@ const Documents = () => {
             {/* MAIN CONTENT */}
             <div className="ml-64">
 
-                {/* HEADER */}
-                <header className="fixed left-64 right-0 top-0 z-40 h-20 border-b border-slate-200 bg-white">
-
-                    <div className="flex h-full items-center justify-between px-8">
-
-                        <div>
-                            <h2 className="text-xl font-semibold text-slate-800">
-                                Documents
-                            </h2>
-
-                            <p className="text-sm text-slate-500">
-                                Your rental documents
-                            </p>
-                        </div>
-
-                        <div className="flex items-center gap-4">
-
-                            {/* NOTIFICATIONS */}
-                            <button
-                                type="button"
-                                onClick={() =>
-                                    navigate(
-                                        "/tenant/notifications"
-                                    )
-                                }
-                                className="relative rounded-full p-2 text-slate-600 transition hover:bg-slate-100"
-                            >
-                                <FiBell size={20} />
-
-                                <span className="absolute right-1 top-1 h-2.5 w-2.5 rounded-full bg-red-500" />
-                            </button>
-
-                            {/* PROFILE */}
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 font-semibold text-blue-600">
-                                T
-                            </div>
-
-                            {/* LOGOUT */}
-                            <button
-                                type="button"
-                                onClick={handleLogout}
-                                className="rounded-lg border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:bg-slate-100"
-                            >
-                                Logout
-                            </button>
-
-                        </div>
-
-                    </div>
-
-                </header>
+                {/* COMMON TENANT NAVBAR */}
+                <Navbar
+                    role="tenant"
+                    title="Documents"
+                    subtitle="Your rental documents"
+                />
 
                 {/* PAGE CONTENT */}
                 <main className="px-8 pb-10 pt-28">
@@ -412,7 +361,6 @@ const Documents = () => {
                                         downloadingId === doc._id;
 
                                     return (
-
                                         <div
                                             key={doc._id}
                                             className="rounded-xl border border-slate-200 bg-slate-50 p-6"
@@ -432,22 +380,16 @@ const Documents = () => {
                                                 <div className="min-w-0">
 
                                                     <h3 className="break-words font-semibold text-slate-800">
-
                                                         {doc.name ||
                                                             "Untitled Document"}
-
                                                     </h3>
 
                                                     <p className="mt-1 text-xs text-slate-500">
-
                                                         {doc.size ||
                                                             "Unknown size"}{" "}
-
                                                         •{" "}
-
                                                         {doc.date ||
                                                             "Unknown date"}
-
                                                     </p>
 
                                                 </div>
@@ -496,7 +438,6 @@ const Documents = () => {
                                             </div>
 
                                         </div>
-
                                     );
                                 })
                             )}
@@ -506,9 +447,7 @@ const Documents = () => {
                     </div>
 
                 </main>
-
             </div>
-
         </div>
     );
 };
