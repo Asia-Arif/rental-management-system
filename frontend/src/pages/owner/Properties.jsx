@@ -181,7 +181,7 @@ const Properties = () => {
 
                         <button
                             onClick={() =>
-                                navigate("/owner/add-property")
+                                navigate("/owner/manage-property")
                             }
                             className="rounded-lg bg-blue-600 px-5 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
                         >
@@ -416,7 +416,7 @@ const Properties = () => {
                                             <button
                                                 onClick={() =>
                                                     navigate(
-                                                        `/owner/add-property/${property._id}`
+                                                        `/owner/manage-property/${property._id}`
                                                     )
                                                 }
                                                 className="rounded-lg bg-blue-50 px-4 py-2.5 text-sm font-medium text-blue-600 hover:bg-blue-100"

@@ -58,13 +58,13 @@ function App() {
 
                 {/* Add Property */}
                 <Route
-                    path="/owner/add-property"
+                    path="/owner/manage-property"
                     element={<AddProperty />}
                 />
 
                 {/* Edit Property - Same AddProperty Page */}
                 <Route
-                    path="/owner/add-property/:id"
+                    path="/owner/manage-property/:id"
                     element={<AddProperty />}
                 />
 

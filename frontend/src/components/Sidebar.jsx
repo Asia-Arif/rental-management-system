@@ -25,7 +25,7 @@ const Sidebar = ({ role }) => {
         },
         {
             name: "Manage Property",
-            path: "/owner/add-property",
+            path: "/owner/manage-property",
             icon: Plus,
         },
         {
